@@ -37,11 +37,12 @@ syntax.tab.o: $(FlexSrc) $(BisonSrc)
 # some convinient rules #
 .PHONY: clean test
 
-TESTFILE := test.txt
+TESTFILE := test.c 
 test: all
-	$(Parser_BIN) $(TESTFILE)
+	$(Parser_BIN) $(TESTFILE) | tee test.output
 
 clean:
 	-rm -f $(FlexObj) $(BisonObj)
 	-rm -f *.o
 	-rm -f $(Parser_BIN)
+	-rm -f test.output

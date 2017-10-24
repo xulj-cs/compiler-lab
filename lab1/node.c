@@ -37,6 +37,8 @@ void insertChild(Node *parent,int num_of_child,...){
 }
 
 static void printSubtree(Node *p,int depth){
+	if (p == NULL)
+		return ;	//for the non-terminals that product epsilon
 	int t = depth;
 	while(t--) 
 		printf("  ");
