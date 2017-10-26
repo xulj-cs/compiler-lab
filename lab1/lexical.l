@@ -53,15 +53,15 @@ DELIM	[ \t]
 									return COMMA;	
 										
 								}
-=								{
-									printf("assignop\t");
-									yylval.type_node = newLeaf("ASSIGNOP");
-									return ASSIGNOP;
-								}
 >|<|>=|<=|==|!=					{	printf("relop\t");
 									yylval.type_node = newLeaf("RELOP");
 									return RELOP;	
 									
+								}
+=								{
+									printf("assignop\t");
+									yylval.type_node = newLeaf("ASSIGNOP");
+									return ASSIGNOP;
 								}
 \+								{
 									printf("plus\t");
@@ -99,10 +99,6 @@ DELIM	[ \t]
 									yylval.type_node = newLeaf("NOT");
 									return NOT;	
 								}
-int|float						{printf("type\t");
-									yylval.type_node = newLeaf("TYPE");
-									return TYPE;	
-								}
 \(								{
 									printf("lp\t");
 									yylval.type_node = newLeaf("LP");
@@ -132,6 +128,10 @@ int|float						{printf("type\t");
 									printf("rc\t");
 									yylval.type_node = newLeaf("RC");
 									return RC;	
+								}
+int|float						{printf("type\t");
+									yylval.type_node = newLeaf("TYPE");
+									return TYPE;	
 								}
 struct							{
 									printf("struct\t");

@@ -17,6 +17,20 @@
 %token <type_node> LP RP LB RB LC RC
 %token <type_node> STRUCT RETURN IF ELSE WHILE
 
+/* priority & association */
+%right ASSIGNOP
+%left OR
+%left AND
+%left RELOP 
+%left PLUS MINUS
+%left STAR DIV
+%right NOT
+%left DOT LP RP LB RB
+
+/* solution to suspended-else problem */
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
 /* declared non-terminals */
 %type <type_node> Program ExtDefList ExtDef ExtDecList 
 %type <type_node> Specifier StructSpecifier OptTag Tag 
@@ -93,6 +107,7 @@ StmtList    : Stmt StmtList                 {$$ = newNode("StmtList", 2, $1, $2)
 Stmt    : Exp SEMI                          {$$ = newNode("Stmt", 2, $1, $2);}
         | CompSt                            {$$ = newNode("Stmt", 1, $1);}
         | RETURN Exp SEMI                   {$$ = newNode("Stmt", 3, $1, $2, $3);}
+		| IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {$$ = newNode("Stmt", 5, $1, $2, $3, $4, $5);}
         | IF LP Exp RP Stmt ELSE Stmt       {$$ = newNode("Stmt", 7, $1, $2, $3, $4, $5, $6, $7);}
         | WHILE LP Exp RP Stmt              {$$ = newNode("Stmt", 5, $1, $2, $3, $4, $5);}
         ;
