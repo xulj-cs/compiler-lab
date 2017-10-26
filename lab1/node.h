@@ -15,9 +15,8 @@ typedef struct AST_Node { //abstract syntax tree
 
 extern Node* root;
 
-Node *newNode(const char* symbol,int lineno);
-Node *newLeaf(const char* symbol,const char* lexeme);
-void insertChild(Node *parent,int num_of_child,...);
+Node *newLeaf(const char* symbol);
+Node *newNode(const char* symbol,int num_of_child,...);
 void printAST();
 
 #endif

@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include "node.h"
 
+extern int yylineno;
+extern char *yytext;
+
 Node *root = NULL;
 
 static void initNode(Node *p){
@@ -11,29 +14,31 @@ static void initNode(Node *p){
 	memset(p->child ,0, sizeof(Node*) * MAX_CHILD_NUM);
 }
 
+Node *newLeaf(const char*symbol){
+	Node *p = (Node *)malloc(sizeof(Node));
+	strcpy(p->symbol,symbol);
+	strcpy(p->lexeme,yytext);
+	p->lineno = yylineno;
+	initNode(p);
+	return p;
+}
 
-Node *newNode(const char* symbol,int lineno){
+Node *newNode(const char* symbol,int num_of_child,...){
 	Node *p = (Node *)malloc(sizeof(Node));
 	strcpy(p->symbol,symbol);
-	p->lineno = lineno;
+//	p->lineno = yylineno;
 	initNode(p);
-	return p;
-}
-Node *newLeaf(const char*symbol,const char* lexeme){
-	Node *p = (Node *)malloc(sizeof(Node));
-	strcpy(p->symbol,symbol);
-	strcpy(p->lexeme,lexeme);
-	initNode(p);
-	return p;
-}
-void insertChild(Node *parent,int num_of_child,...){
+
+	// add children
 	va_list argList;
 	va_start(argList,num_of_child);
-	parent->num_of_child = num_of_child;
+	p->num_of_child = num_of_child;
 	for(int i=0;i<num_of_child;i++){
-		parent->child[i] = va_arg(argList,Node *);
+		p->child[i] = va_arg(argList,Node *);
 	}
 	va_end(argList);
+	p->lineno = p->child[0]->lineno;
+	return p;
 }
 
 static void printSubtree(Node *p,int depth){

@@ -28,117 +28,117 @@
 %%
 /* High-level Definitions */
 
-Program     : ExtDefList        {$$ = newNode("Program",@$.first_line);insertChild($$, 1, $1);root=$$;}
+Program     : ExtDefList        {$$ = newNode("Program", 1, $1);root=$$;}
             ;
 
-ExtDefList  : ExtDef ExtDefList     {$$ = newNode("ExtDefList",@$.first_line);insertChild($$, 2, $1, $2);}
+ExtDefList  : ExtDef ExtDefList     {$$ = newNode("ExtDefList", 2, $1, $2);}
             |  /* empty*/           {$$ = NULL;}
             ;
                 
-ExtDef      : Specifier ExtDecList SEMI     {$$ = newNode("ExtDef",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-            | Specifier SEMI                {$$ = newNode("ExtDef",@$.first_line);insertChild($$, 2, $1, $2);}    
-            | Specifier FunDec CompSt       {$$ = newNode("ExtDef",@$.first_line);insertChild($$, 3, $1, $2, $3);}
+ExtDef      : Specifier ExtDecList SEMI     {$$ = newNode("ExtDef", 3, $1, $2, $3);}
+            | Specifier SEMI                {$$ = newNode("ExtDef", 2, $1, $2);}    
+            | Specifier FunDec CompSt       {$$ = newNode("ExtDef", 3, $1, $2, $3);}
             ;
-ExtDecList  : VarDec                        {$$ = newNode("ExtDecList",@$.first_line);insertChild($$, 1, $1);} 
-            | VarDec COMMA ExtDecList       {$$ = newNode("ExtDecList",@$.first_line);insertChild($$, 3, $1, $2, $3);} 
+ExtDecList  : VarDec                        {$$ = newNode("ExtDecList", 1, $1);} 
+            | VarDec COMMA ExtDecList       {$$ = newNode("ExtDecList", 3, $1, $2, $3);} 
             ;
 
             
 
 /* Specifiers */
 
-Specifier   : TYPE                  {$$ = newNode("Specifier",@$.first_line);insertChild($$, 1, $1);}
-            | StructSpecifier       {$$ = newNode("Specifier",@$.first_line);insertChild($$, 1, $1);}
+Specifier   : TYPE                  {$$ = newNode("Specifier", 1, $1);}
+            | StructSpecifier       {$$ = newNode("Specifier", 1, $1);}
             ;
             
-StructSpecifier : STRUCT OptTag LC DefList RC   {$$ = newNode("StructSpecifier",@$.first_line);insertChild($$, 5, $1, $2, $3, $4, $5);}
-                | STRUCT Tag                    {$$ = newNode("StructSpecifier",@$.first_line);insertChild($$, 2, $1, $2);}
+StructSpecifier : STRUCT OptTag LC DefList RC   {$$ = newNode("StructSpecifier", 5, $1, $2, $3, $4, $5);}
+                | STRUCT Tag                    {$$ = newNode("StructSpecifier", 2, $1, $2);}
                 ;
             
-OptTag  : ID                {$$ = newNode("OptTag",@$.first_line);insertChild($$, 1, $1);}
+OptTag  : ID                {$$ = newNode("OptTag", 1, $1);}
         | /* empty*/        {$$ = NULL;}
         ;
         
-Tag     : ID                {$$ = newNode("Tag",@$.first_line);insertChild($$, 1, $1);}
+Tag     : ID                {$$ = newNode("Tag", 1, $1);}
         ;
 
 
 /* Declarators */
 
-VarDec      : ID                            {$$ = newNode("VarDec",@$.first_line);insertChild($$, 1, $1);}
-            | VarDec LB INT RB              {$$ = newNode("VarDec",@$.first_line);insertChild($$, 4, $1, $2, $3, $4);}
+VarDec      : ID                            {$$ = newNode("VarDec", 1, $1);}
+            | VarDec LB INT RB              {$$ = newNode("VarDec", 4, $1, $2, $3, $4);}
             ;
             
-FunDec      : ID LP VarList RP              {$$ = newNode("FunDec",@$.first_line);insertChild($$, 4, $1, $2, $3, $4);}
-            | ID LP RP                      {$$ = newNode("FunDec",@$.first_line);insertChild($$, 3, $1, $2, $3);}
+FunDec      : ID LP VarList RP              {$$ = newNode("FunDec", 4, $1, $2, $3, $4);}
+            | ID LP RP                      {$$ = newNode("FunDec", 3, $1, $2, $3);}
             ;
             
-VarList     : ParamDec COMMA VarList        {$$ = newNode("VarList",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-            | ParamDec                      {$$ = newNode("VarList",@$.first_line);insertChild($$, 1, $1);}
+VarList     : ParamDec COMMA VarList        {$$ = newNode("VarList", 3, $1, $2, $3);}
+            | ParamDec                      {$$ = newNode("VarList", 1, $1);}
             ;
             
-ParamDec    : Specifier VarDec              {$$ = newNode("ParamDec",@$.first_line);insertChild($$, 2, $1, $2);}
+ParamDec    : Specifier VarDec              {$$ = newNode("ParamDec", 2, $1, $2);}
             ;
 
             
 /* Statements */
 
-CompSt      : LC DefList StmtList RC        {$$ = newNode("CompSt",@$.first_line);insertChild($$, 4, $1, $2, $3, $4);}
+CompSt      : LC DefList StmtList RC        {$$ = newNode("CompSt", 4, $1, $2, $3, $4);}
             ;
             
-StmtList    : Stmt StmtList                 {$$ = newNode("StmtList",@$.first_line);insertChild($$, 2, $1, $2);}
+StmtList    : Stmt StmtList                 {$$ = newNode("StmtList", 2, $1, $2);}
             | /*empty*/                     {$$ = NULL;}
             ;
             
-Stmt    : Exp SEMI                          {$$ = newNode("Stmt",@$.first_line);insertChild($$, 2, $1, $2);}
-        | CompSt                            {$$ = newNode("Stmt",@$.first_line);insertChild($$, 1, $1);}
-        | RETURN Exp SEMI                   {$$ = newNode("Stmt",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | IF LP Exp RP Stmt ELSE Stmt       {$$ = newNode("Stmt",@$.first_line);insertChild($$, 7, $1, $2, $3, $4, $5, $6, $7);}
-        | WHILE LP Exp RP Stmt              {$$ = newNode("Stmt",@$.first_line);insertChild($$, 5, $1, $2, $3, $4, $5);}
+Stmt    : Exp SEMI                          {$$ = newNode("Stmt", 2, $1, $2);}
+        | CompSt                            {$$ = newNode("Stmt", 1, $1);}
+        | RETURN Exp SEMI                   {$$ = newNode("Stmt", 3, $1, $2, $3);}
+        | IF LP Exp RP Stmt ELSE Stmt       {$$ = newNode("Stmt", 7, $1, $2, $3, $4, $5, $6, $7);}
+        | WHILE LP Exp RP Stmt              {$$ = newNode("Stmt", 5, $1, $2, $3, $4, $5);}
         ;
 
 
 /* Local Definitions */
 
-DefList : Def DefList               {$$ = newNode("DefList",@$.first_line);insertChild($$, 2, $1, $2);}
+DefList : Def DefList               {$$ = newNode("DefList", 2, $1, $2);}
         | /*empty*/                 {$$ = NULL;}
         ;
         
-Def     : Specifier DecList SEMI    {$$ = newNode("Def",@$.first_line);insertChild($$, 3, $1, $2, $3);}
+Def     : Specifier DecList SEMI    {$$ = newNode("Def", 3, $1, $2, $3);}
         ;
 
-DecList : Dec                       {$$ = newNode("DecList",@$.first_line);insertChild($$, 1, $1);}
-        | Dec COMMA DecList         {$$ = newNode("DecList",@$.first_line);insertChild($$, 3, $1, $2, $3);}
+DecList : Dec                       {$$ = newNode("DecList", 1, $1);}
+        | Dec COMMA DecList         {$$ = newNode("DecList", 3, $1, $2, $3);}
         ;
         
-Dec     : VarDec                    {$$ = newNode("Dec",@$.first_line);insertChild($$, 1, $1);}
-        | VarDec ASSIGNOP Exp       {$$ = newNode("Dec",@$.first_line);insertChild($$, 3, $1, $2, $3);}
+Dec     : VarDec                    {$$ = newNode("Dec", 1, $1);}
+        | VarDec ASSIGNOP Exp       {$$ = newNode("Dec", 3, $1, $2, $3);}
         ;
             
             
 /* Expressions */
-Exp     : Exp ASSIGNOP Exp      {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp AND Exp           {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp OR Exp            {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp RELOP Exp         {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp PLUS Exp          {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp MINUS Exp         {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp STAR Exp          {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp DIV Exp           {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | LP Exp RP             {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | MINUS Exp             {$$ = newNode("Exp",@$.first_line);insertChild($$, 2, $1, $2);}
-        | NOT Exp               {$$ = newNode("Exp",@$.first_line);insertChild($$, 2, $1, $2);}
-        | ID LP Args RP         {$$ = newNode("Exp",@$.first_line);insertChild($$, 4, $1, $2, $3, $4);}
-        | ID LP RP              {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp LB Exp RB         {$$ = newNode("Exp",@$.first_line);insertChild($$, 4, $1, $2, $3, $4);}
-        | Exp DOT ID            {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | ID                    {$$ = newNode("Exp",@$.first_line);insertChild($$, 1, $1);}
-        | INT                   {$$ = newNode("Exp",@$.first_line);insertChild($$, 1, $1);}
-        | FLOAT                 {$$ = newNode("Exp",@$.first_line);insertChild($$, 1, $1);}
+Exp     : Exp ASSIGNOP Exp      {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp AND Exp           {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp OR Exp            {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp RELOP Exp         {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp PLUS Exp          {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp MINUS Exp         {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp STAR Exp          {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp DIV Exp           {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | LP Exp RP             {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | MINUS Exp             {$$ = newNode("Exp", 2, $1, $2);}
+        | NOT Exp               {$$ = newNode("Exp", 2, $1, $2);}
+        | ID LP Args RP         {$$ = newNode("Exp", 4, $1, $2, $3, $4);}
+        | ID LP RP              {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp LB Exp RB         {$$ = newNode("Exp", 4, $1, $2, $3, $4);}
+        | Exp DOT ID            {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | ID                    {$$ = newNode("Exp", 1, $1);}
+        | INT                   {$$ = newNode("Exp", 1, $1);}
+        | FLOAT                 {$$ = newNode("Exp", 1, $1);}
         ;
     
-Args    : Exp COMMA Args        {$$ = newNode("Exp",@$.first_line);insertChild($$, 3, $1, $2, $3);}
-        | Exp                   {$$ = newNode("Exp",@$.first_line);insertChild($$, 1, $1);}
+Args    : Exp COMMA Args        {$$ = newNode("Exp", 3, $1, $2, $3);}
+        | Exp                   {$$ = newNode("Exp", 1, $1);}
         ;
 
 
