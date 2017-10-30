@@ -19,7 +19,8 @@ BisonSrc := ./syntax.y
 BisonObj = $(BisonObj_H) $(BisonObj_C) 
 BisonObj_H := ./syntax.tab.h
 BisonObj_C := ./syntax.tab.c
-Bison_FLAGS := -d
+Bison_FLAGS := -d 
+Bison_DEBUG := -t
 
 Parser_BIN := ./parser
 
@@ -37,7 +38,7 @@ syntax.tab.o: $(FlexSrc) $(BisonSrc)
 # some convinient rules #
 .PHONY: clean test
 
-TESTFILE := test.c 
+TESTFILE := ./pretest/10.txt
 test: all
 	$(Parser_BIN) $(TESTFILE) | tee test.output
 

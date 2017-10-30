@@ -1,6 +1,7 @@
 %{
 	#include "syntax.tab.h"
 	int fileno(FILE*);
+	extern int ERROR;
 %}
 
 digit	[0-9]
@@ -15,19 +16,24 @@ DELIM	[ \t]
 									printf("\n");
 								}
 "//"							{
-									printf("comment1\t");
+									printf("comment1\n");
 									char c = input();
 									while(c!='\n') 
 										c = input();
 								}
 "/*"							{	
-									printf("comment2\t");
+									printf("comment2\n");
+									int begin_lineno = yylineno;
 									char a,b;
 									a = input();
 									b = input();
-									while(!(a=='*'&&b=='/')) {
+									while(!(a=='*'&&b=='/') && b!=EOF) {
 										a = b;
 										b = input();
+									}
+									if(b == EOF){
+										printf("Error type B at Line %d: Unterminated comment\n",begin_lineno);
+										ERROR++;
 									}
 								}						
 ({digit}+\.{digit}+)|((({digit}*\.{digit}+)|({digit}+\.{digit}*))[eE][+-]?{digit}+)	{ 
@@ -161,7 +167,9 @@ while							{	printf("while\t");
 									return ID;	
 								}
 
-.								{printf("Error type A at line %d: Mysterious character '%s'\t",yylineno,yytext);}
+.								{	printf("Error type A at Line %d: Mysterious characters \'%s\'\n",yylineno,yytext);
+									ERROR++;
+								}
 
 %%
 /*

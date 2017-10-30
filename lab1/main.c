@@ -3,6 +3,7 @@
 extern FILE* yyin;
 int yyparse();
 
+int ERROR = 0;
 int main(int argc, char** argv) {
     if (argc < 2)
 		return 1;
@@ -13,7 +14,8 @@ int main(int argc, char** argv) {
         }
     }
     yyparse();
-	printAST();
+	if(!ERROR)
+		printAST();
     return 0;
 }
 

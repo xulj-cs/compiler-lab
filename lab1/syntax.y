@@ -3,6 +3,8 @@
 	#include "node.h"
 	#include "lex.yy.c"
 	int yyerror(const char* msg);
+	int myerror(const char* msg);
+	// int yydebug = 1;	//for debugging
 %}
 
 /* declared type */
@@ -16,8 +18,9 @@
 %token <type_node> PLUS MINUS STAR DIV AND OR NOT 
 %token <type_node> LP RP LB RB LC RC
 %token <type_node> STRUCT RETURN IF ELSE WHILE
+%token <type_node> error
 
-/* priority & association */
+/* precedence & associativity */
 %right ASSIGNOP
 %left OR
 %left AND
@@ -42,7 +45,7 @@
 %%
 /* High-level Definitions */
 
-Program     : ExtDefList        {$$ = newNode("Program", 1, $1);root=$$;}
+Program     : ExtDefList			{$$ = newNode("Program", 1, $1);root=$$;}
             ;
 
 ExtDefList  : ExtDef ExtDefList     {$$ = newNode("ExtDefList", 2, $1, $2);}
@@ -52,6 +55,7 @@ ExtDefList  : ExtDef ExtDefList     {$$ = newNode("ExtDefList", 2, $1, $2);}
 ExtDef      : Specifier ExtDecList SEMI     {$$ = newNode("ExtDef", 3, $1, $2, $3);}
             | Specifier SEMI                {$$ = newNode("ExtDef", 2, $1, $2);}    
             | Specifier FunDec CompSt       {$$ = newNode("ExtDef", 3, $1, $2, $3);}
+			| error SEMI
             ;
 ExtDecList  : VarDec                        {$$ = newNode("ExtDecList", 1, $1);} 
             | VarDec COMMA ExtDecList       {$$ = newNode("ExtDecList", 3, $1, $2, $3);} 
@@ -105,6 +109,7 @@ StmtList    : Stmt StmtList                 {$$ = newNode("StmtList", 2, $1, $2)
             ;
             
 Stmt    : Exp SEMI                          {$$ = newNode("Stmt", 2, $1, $2);}
+		| error SEMI						{ERROR++;myerror("Missing \";\"");}
         | CompSt                            {$$ = newNode("Stmt", 1, $1);}
         | RETURN Exp SEMI                   {$$ = newNode("Stmt", 3, $1, $2, $3);}
 		| IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {$$ = newNode("Stmt", 5, $1, $2, $3, $4, $5);}
@@ -120,6 +125,7 @@ DefList : Def DefList               {$$ = newNode("DefList", 2, $1, $2);}
         ;
         
 Def     : Specifier DecList SEMI    {$$ = newNode("Def", 3, $1, $2, $3);}
+		| error SEMI				{ERROR++;myerror("Missing \";\"");}
         ;
 
 DecList : Dec                       {$$ = newNode("DecList", 1, $1);}
@@ -146,6 +152,7 @@ Exp     : Exp ASSIGNOP Exp      {$$ = newNode("Exp", 3, $1, $2, $3);}
         | ID LP Args RP         {$$ = newNode("Exp", 4, $1, $2, $3, $4);}
         | ID LP RP              {$$ = newNode("Exp", 3, $1, $2, $3);}
         | Exp LB Exp RB         {$$ = newNode("Exp", 4, $1, $2, $3, $4);}
+        | Exp LB error RB       {ERROR++;myerror("Missing \"]\"");}
         | Exp DOT ID            {$$ = newNode("Exp", 3, $1, $2, $3);}
         | ID                    {$$ = newNode("Exp", 1, $1);}
         | INT                   {$$ = newNode("Exp", 1, $1);}
@@ -159,5 +166,8 @@ Args    : Exp COMMA Args        {$$ = newNode("Exp", 3, $1, $2, $3);}
 
 %%
 int yyerror(const char* msg){
-	printf("Error type B %s\n",msg);
+	printf("Error type B at Line %d: %s.\n",yylineno,msg);
+}
+int myerror(const char *msg){
+	printf("Error type B at Line %d: %s.\n",yylineno,msg);
 }
