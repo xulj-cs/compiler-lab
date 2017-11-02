@@ -1,0 +1,12 @@
+int main(){
+	int a = 1;
+	int a = 017;
+	int a = 0xFd;
+	float f = 1.2;/*
+	there is comment 
+	*/
+	float f = 0.123;
+	float f = 1.e-4;
+	float f = .23E4;
+	float f = 123.321e12;
+}

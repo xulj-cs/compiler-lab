@@ -42,7 +42,7 @@ DELIM	[ \t]
 									return FLOAT;	
 
 								}
-0|[1-9]{digit}*					{
+(0|[1-9]{digit}*)|(0[0-7]+)|(0[Xx][0-9a-fA-F]+)					{
 									printf("INT\t");
 									yylval.type_node = newLeaf("INT");
 									return INT;	

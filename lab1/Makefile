@@ -38,7 +38,7 @@ syntax.tab.o: $(FlexSrc) $(BisonSrc)
 # some convinient rules #
 .PHONY: clean test
 
-TESTFILE := ./pretest/10.txt
+TESTFILE := ./pretest/11.txt
 test: all
 	$(Parser_BIN) $(TESTFILE) | tee test.output
 

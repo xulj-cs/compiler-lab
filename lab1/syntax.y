@@ -55,7 +55,7 @@ ExtDefList  : ExtDef ExtDefList     {$$ = newNode("ExtDefList", 2, $1, $2);}
 ExtDef      : Specifier ExtDecList SEMI     {$$ = newNode("ExtDef", 3, $1, $2, $3);}
             | Specifier SEMI                {$$ = newNode("ExtDef", 2, $1, $2);}    
             | Specifier FunDec CompSt       {$$ = newNode("ExtDef", 3, $1, $2, $3);}
-			| error SEMI
+		/*	| error SEMI */
             ;
 ExtDecList  : VarDec                        {$$ = newNode("ExtDecList", 1, $1);} 
             | VarDec COMMA ExtDecList       {$$ = newNode("ExtDecList", 3, $1, $2, $3);} 
@@ -109,7 +109,7 @@ StmtList    : Stmt StmtList                 {$$ = newNode("StmtList", 2, $1, $2)
             ;
             
 Stmt    : Exp SEMI                          {$$ = newNode("Stmt", 2, $1, $2);}
-		| error SEMI						{ERROR++;myerror("Missing \";\"");}
+/*		| error SEMI						{ERROR++;myerror("Missing \";\"");} */
         | CompSt                            {$$ = newNode("Stmt", 1, $1);}
         | RETURN Exp SEMI                   {$$ = newNode("Stmt", 3, $1, $2, $3);}
 		| IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {$$ = newNode("Stmt", 5, $1, $2, $3, $4, $5);}
@@ -125,7 +125,7 @@ DefList : Def DefList               {$$ = newNode("DefList", 2, $1, $2);}
         ;
         
 Def     : Specifier DecList SEMI    {$$ = newNode("Def", 3, $1, $2, $3);}
-		| error SEMI				{ERROR++;myerror("Missing \";\"");}
+	/*	| error SEMI				{ERROR++;myerror("Missing \";\"");} */
         ;
 
 DecList : Dec                       {$$ = newNode("DecList", 1, $1);}
@@ -152,7 +152,7 @@ Exp     : Exp ASSIGNOP Exp      {$$ = newNode("Exp", 3, $1, $2, $3);}
         | ID LP Args RP         {$$ = newNode("Exp", 4, $1, $2, $3, $4);}
         | ID LP RP              {$$ = newNode("Exp", 3, $1, $2, $3);}
         | Exp LB Exp RB         {$$ = newNode("Exp", 4, $1, $2, $3, $4);}
-        | Exp LB error RB       {ERROR++;myerror("Missing \"]\"");}
+/*        | Exp LB error RB       {ERROR++;myerror("Missing \"]\"");} */
         | Exp DOT ID            {$$ = newNode("Exp", 3, $1, $2, $3);}
         | ID                    {$$ = newNode("Exp", 1, $1);}
         | INT                   {$$ = newNode("Exp", 1, $1);}

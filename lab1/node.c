@@ -55,7 +55,25 @@ static void printSubtree(Node *p,int depth){
 		}
 	}	
 	else{
-		printf("%s: %s\n",p->symbol,p->lexeme);	
+		//print leaf 
+		if(strcmp(p->symbol,"INT")==0){
+			if( /*p->lexeme[0]=='0'&&*/ p->lexeme[1]=='x'||p->lexeme[1]=='X')
+				printf("%s: %d\n",p->symbol,strtol(p->lexeme,NULL,16));
+			else if(p->lexeme[0]=='0')
+				printf("%s: %d\n",p->symbol,strtol(p->lexeme,NULL,8));
+			else
+				printf("%s: %d\n",p->symbol,strtol(p->lexeme,NULL,10));
+					
+		}
+		else if (strcmp(p->symbol,"FLOAT")==0){
+			printf("%s: %f\n",p->symbol,strtod(p->lexeme,NULL));	
+		}
+		else if (strcmp(p->symbol,"ID")==0 || strcmp(p->symbol,"TYPE")==0){
+			printf("%s: %s\n",p->symbol,p->lexeme);	
+		}
+		else 
+			printf("%s\n",p->symbol);	
+			
 	}
 }
 void printAST(){
