@@ -1,5 +1,0 @@
-int c;
-int int  main(int a b c){
-	int c;
-	int a[12][12.3];
-}

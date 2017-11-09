@@ -32,7 +32,7 @@ DELIM	[ \t]
 										b = input();
 									}
 									if(b == EOF){
-										printf("Error type B at Line %d: Unterminated comment\n",begin_lineno);
+										printf("Error type B at Line %d: Unterminated comment.\n",begin_lineno);
 										ERROR++;
 									}
 								}						
@@ -167,7 +167,7 @@ while							{	//printf("while\t");
 									return ID;	
 								}
 
-.								{	printf("Error type A at Line %d: Mysterious characters \'%s\'\n",yylineno,yytext);
+.								{	printf("Error type A at Line %d: Mysterious characters \'%s\'.\n",yylineno,yytext);
 									ERROR++;
 								}
 
