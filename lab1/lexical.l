@@ -13,16 +13,16 @@ DELIM	[ \t]
 %%
 {DELIM}+						{}
 \n								{
-									printf("\n");
+									//printf("\n");
 								}
 "//"							{
-									printf("comment1\n");
+									//printf("comment1\n");
 									char c = input();
 									while(c!='\n') 
 										c = input();
 								}
 "/*"							{	
-									printf("comment2\n");
+									//printf("comment2\n");
 									int begin_lineno = yylineno;
 									char a,b;
 									a = input();
@@ -37,132 +37,132 @@ DELIM	[ \t]
 									}
 								}						
 ({digit}+\.{digit}+)|((({digit}*\.{digit}+)|({digit}+\.{digit}*))[eE][+-]?{digit}+)	{ 
-									printf("FLOAT\t");
+									//printf("FLOAT\t");
 									yylval.type_node = newLeaf("FLOAT");
 									return FLOAT;	
 
 								}
 (0|[1-9]{digit}*)|(0[0-7]+)|(0[Xx][0-9a-fA-F]+)					{
-									printf("INT\t");
+									//printf("INT\t");
 									yylval.type_node = newLeaf("INT");
 									return INT;	
 								}
 ;								{
-									printf("semi\t");
+									//printf("semi\t");
 									yylval.type_node = newLeaf("SEMI");
 									return SEMI;	
 
 								}
 ,								{
-									printf("comma\t");
+									//printf("comma\t");
 									yylval.type_node = newLeaf("COMMA");
 									return COMMA;	
 										
 								}
->|<|>=|<=|==|!=					{	printf("relop\t");
+>|<|>=|<=|==|!=					{	//printf("relop\t");
 									yylval.type_node = newLeaf("RELOP");
 									return RELOP;	
 									
 								}
 =								{
-									printf("assignop\t");
+									//printf("assignop\t");
 									yylval.type_node = newLeaf("ASSIGNOP");
 									return ASSIGNOP;
 								}
 \+								{
-									printf("plus\t");
+									//printf("plus\t");
 									yylval.type_node = newLeaf("PLUS");
 									return PLUS;	
 								}
--								{	printf("minus\t");
+-								{	//printf("minus\t");
 									yylval.type_node = newLeaf("MINUS");
 									return MINUS;	
 								}
 \*								{
-									printf("star\t");
+									//printf("star\t");
 									yylval.type_node = newLeaf("STAR");
 									return STAR;	
 								}
 \/								{
-									printf("div\t");
+									//printf("div\t");
 									yylval.type_node = newLeaf("DIV");
 									return DIV;	
 								}
 &&								{
-									printf("and\t");
+									//printf("and\t");
 									yylval.type_node = newLeaf("AND");
 									return AND;	
 								}
-\|\|							{	printf("or\t");
+\|\|							{	//printf("or\t");
 									yylval.type_node = newLeaf("OR");
 									return OR;	
 								}
-\.								{printf("dot\t");
+\.								{	//printf("dot\t");
 									yylval.type_node = newLeaf("DOT");
 									return DOT;	
 								}
-!								{printf("not\t");
+!								{	//printf("not\t");
 									yylval.type_node = newLeaf("NOT");
 									return NOT;	
 								}
 \(								{
-									printf("lp\t");
+									//printf("lp\t");
 									yylval.type_node = newLeaf("LP");
 									return LP;	
 								}
 \)								{
-									printf("rp\t");
+									//printf("rp\t");
 									yylval.type_node = newLeaf("RP");
 									return RP;	
 								}
 \[								{
-									printf("lb\t");
+									//printf("lb\t");
 									yylval.type_node = newLeaf("LB");
 									return LB;	
 								}
 \]								{
-									printf("RB\t");
+									//printf("rb\t");
 									yylval.type_node = newLeaf("RB");
 									return RB;	
 								}
 \{								{
-									printf("lc\t");
+									//printf("lc\t");
 									yylval.type_node = newLeaf("LC");
 									return LC;	
 								}
 \}								{
-									printf("rc\t");
+									//printf("rc\t");
 									yylval.type_node = newLeaf("RC");
 									return RC;	
 								}
-int|float						{printf("type\t");
+int|float						{	//printf("type\t");
 									yylval.type_node = newLeaf("TYPE");
 									return TYPE;	
 								}
 struct							{
-									printf("struct\t");
+									//printf("struct\t");
 									yylval.type_node = newLeaf("STRUCT");
 									return STRUCT;	
 								}
-return							{	printf("return\t");
+return							{	//printf("return\t");
 									yylval.type_node = newLeaf("RETURN");
 									return RETURN;	
 								}
-if								{	printf("if\t");
+if								{	//printf("if\t");
 									yylval.type_node = newLeaf("IF");
 									return IF;	
 								}
-else							{	printf("else\t");
+else							{	//printf("else\t");
 									yylval.type_node = newLeaf("ELSE");
 									return ELSE;	
 								}
 								
-while							{	printf("while\t");
+while							{	//printf("while\t");
 									yylval.type_node = newLeaf("WHILE");
 									return WHILE;	
 								}
 
-{letter}({letter}|{digit})*		{	printf("ID\t");	
+{letter}({letter}|{digit})*		{	//printf("ID\t");	
 									yylval.type_node = newLeaf("ID");
 									return ID;	
 								}

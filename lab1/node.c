@@ -77,6 +77,6 @@ static void printSubtree(Node *p,int depth){
 	}
 }
 void printAST(){
-	printf("here we begin to print the tree... \n");
+//	printf("here we begin to print the tree... \n");
 	printSubtree(root,0);
 }
