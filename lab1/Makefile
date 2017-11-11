@@ -45,7 +45,7 @@ obj/main.o:	code/main.c
 
 
 # some convinient rules #
-.PHONY: clean test
+.PHONY: clean test test-all clean-temp
 
 TESTFILE := test.txt
 test: all
