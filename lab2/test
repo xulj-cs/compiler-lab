@@ -1,0 +1,57 @@
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        StructSpecifier (1)
+          STRUCT
+          OptTag (1)
+            ID: A
+          LC
+          DefList (2)
+            Def (2)
+              Specifier (2)
+                TYPE: int
+              DecList (2)
+                Dec (2)
+                  VarDec (2)
+                    ID: A1
+              SEMI
+            DefList (3)
+              Def (3)
+                Specifier (3)
+                  TYPE: int
+                DecList (3)
+                  Dec (3)
+                    VarDec (3)
+                      ID: A2
+                SEMI
+          RC
+      SEMI
+    ExtDefList (5)
+      ExtDef (5)
+        Specifier (5)
+          TYPE: int
+        ExtDecList (5)
+          VarDec (5)
+            ID: global
+        SEMI
+      ExtDefList (6)
+        ExtDef (6)
+          Specifier (6)
+            TYPE: int
+          FunDec (6)
+            ID: this_is_func
+            LP
+            RP
+          CompSt (6)
+            LC
+            DefList (7)
+              Def (7)
+                Specifier (7)
+                  TYPE: int
+                DecList (7)
+                  Dec (7)
+                    VarDec (7)
+                      ID: temp
+                SEMI
+            RC
