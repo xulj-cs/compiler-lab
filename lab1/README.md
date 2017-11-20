@@ -11,6 +11,7 @@
 	- 过滤空白符DELIM（空格，制表符，回车）
 	- 实现选做要求1.3，过滤"//"和"/*...*/"形式的注释
 	- 利用RE和相应函数识别词素，返回词法单元（在syntay.y中定义)。因为Flex依次尝试每一个规则，RE的排序需满足条件：1)识别float的规则在识别int,DOT(.)的规则之前；2)识别RELOP(!=,==,...)的规则在识别ASSIGNOP(=),NOT(!)；3)识别id的规则放在最后
+	
 			digit   [0-9]
 			letter  [_a-zA-Z]
 			RE(float) = ({digit}+\.{digit}+)|((({digit}*\.{digit}+)|({digit}+\.{digit}*))[eE][+-]?{digit}+)
