@@ -5,53 +5,122 @@ Program (1)
         StructSpecifier (1)
           STRUCT
           OptTag (1)
-            ID: A
+            ID: SomeStruct
           LC
           DefList (2)
             Def (2)
               Specifier (2)
-                TYPE: int
+                TYPE: float
               DecList (2)
                 Dec (2)
                   VarDec (2)
-                    ID: A1
+                    ID: f
               SEMI
             DefList (3)
               Def (3)
                 Specifier (3)
-                  TYPE: int
+                  TYPE: float
                 DecList (3)
                   Dec (3)
                     VarDec (3)
-                      ID: A2
+                      VarDec (3)
+                        ID: array
+                      LB
+                      INT: 5
+                      RB
                 SEMI
+              DefList (4)
+                Def (4)
+                  Specifier (4)
+                    TYPE: int
+                  DecList (4)
+                    Dec (4)
+                      VarDec (4)
+                        VarDec (4)
+                          VarDec (4)
+                            ID: array2
+                          LB
+                          INT: 10
+                          RB
+                        LB
+                        INT: 5
+                        RB
+                  SEMI
+                DefList (5)
+                  Def (5)
+                    Specifier (5)
+                      StructSpecifier (5)
+                        STRUCT
+                        OptTag (5)
+                          ID: sub
+                        LC
+                        DefList (6)
+                          Def (6)
+                            Specifier (6)
+                              TYPE: int
+                            DecList (6)
+                              Dec (6)
+                                VarDec (6)
+                                  ID: a
+                            SEMI
+                        RC
+                    DecList (7)
+                      Dec (7)
+                        VarDec (7)
+                          ID: b
+                    SEMI
           RC
       SEMI
-    ExtDefList (5)
-      ExtDef (5)
-        Specifier (5)
+    ExtDefList (9)
+      ExtDef (9)
+        Specifier (9)
           TYPE: int
-        ExtDecList (5)
-          VarDec (5)
+        ExtDecList (9)
+          VarDec (9)
             ID: global
         SEMI
-      ExtDefList (6)
-        ExtDef (6)
-          Specifier (6)
+      ExtDefList (10)
+        ExtDef (10)
+          Specifier (10)
             TYPE: int
-          FunDec (6)
-            ID: this_is_func
-            LP
-            RP
-          CompSt (6)
-            LC
-            DefList (7)
-              Def (7)
-                Specifier (7)
-                  TYPE: int
-                DecList (7)
-                  Dec (7)
-                    VarDec (7)
-                      ID: temp
-                SEMI
-            RC
+          ExtDecList (10)
+            VarDec (10)
+              VarDec (10)
+                ID: array
+              LB
+              INT: 10
+              RB
+          SEMI
+        ExtDefList (11)
+          ExtDef (11)
+            Specifier (11)
+              TYPE: int
+            FunDec (11)
+              ID: func
+              LP
+              RP
+            CompSt (11)
+              LC
+              DefList (12)
+                Def (12)
+                  Specifier (12)
+                    TYPE: int
+                  DecList (12)
+                    Dec (12)
+                      VarDec (12)
+                        ID: temp
+                  SEMI
+                DefList (13)
+                  Def (13)
+                    Specifier (13)
+                      TYPE: int
+                    DecList (13)
+                      Dec (13)
+                        VarDec (13)
+                          VarDec (13)
+                            ID: a
+                          LB
+                          INT: 10
+                          RB
+                    SEMI
+              RC

@@ -21,6 +21,7 @@ struct FieldList_{
 	Type type;
 	FieldList tail;
 };
+typedef FieldList ParaList_Ret;
 
 #endif
 

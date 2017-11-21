@@ -84,7 +84,7 @@ static void traverseSubtree(Node *p){
 		return ;
 	if (strcmp(p->symbol,"ExtDef")==0||strcmp(p->symbol,"Def")==0){
 		//分析以更新符号表	
-		insertSymTable(p);
+		updateSymTable(p);
 	}
 	else if (strcmp(p->symbol,"Exp")==0){
 		//查表以判断是否有错误
@@ -98,5 +98,9 @@ static void traverseSubtree(Node *p){
 void printAST(){
 //	printf("here we begin to print the tree... \n");
 	printSubtree(root,0);
+
+	initSymTable();
 	traverseSubtree(root);
+
+	printSymTable();
 }

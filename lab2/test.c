@@ -1,8 +1,7 @@
-struct A{
-	int A1 = 2;
-	int A2;
-};
-int global;
-int this_is_func(){
-	int temp;
-}
+
+float a;
+
+int fdaf;
+
+float a[1][3][4];
+

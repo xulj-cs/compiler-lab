@@ -5,10 +5,20 @@
 #include "node.h"
 #define SIZE_OF_TABLE 0x7fff
 
-extern FieldList table[SIZE_OF_TABLE];
+//extern FieldList table[SIZE_OF_TABLE];
 void initSymTable();
-void insertSymTable(Node*);
+void updateSymTable(Node*);
 void searchSymTable(Node*);
+void printSymTable();
+typedef struct symNode{
+	char *name;
+	enum{Variable,Structure,Function} kind;
+	union{
+		Type type;		//for variable & struct definition
+		ParaList_Ret para;	// for function definition
+	}info;
 
+	struct symNode* tail;
+}symNode;
 #endif
 
