@@ -57,7 +57,7 @@ $(OBJ)/main.o:	$(SRC)/main.c
 # some convinient rules #
 .PHONY: clean test test-all clean-temp
 
-TESTFILE := test.txt
+TESTFILE := test.c
 test: all
 	$(Parser_BIN) $(TESTFILE) 
 test-all: all

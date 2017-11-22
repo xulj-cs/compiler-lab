@@ -1,7 +1,16 @@
+struct A{
+	int a,b[10][123][432],fa;
+	float b[12],a[32],c;
+	int c;
+};
 
-float a;
-
-int fdaf;
-
-float a[1][3][4];
-
+int a;
+int b;
+float b[12];
+/*struct A{
+};
+struct {
+	int a;
+};
+struct {
+};*/

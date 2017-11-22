@@ -14,7 +14,8 @@ typedef struct symNode{
 	char *name;
 	enum{Variable,Structure,Function} kind;
 	union{
-		Type type;		//for variable & struct definition
+		Type type;		//for variable 
+		FieldList field;	//for struct definition
 		ParaList_Ret para;	// for function definition
 	}info;
 
