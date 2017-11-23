@@ -88,7 +88,7 @@ static void traverseSubtree(Node *p){
 	}
 	else if (strcmp(p->symbol,"Exp")==0){
 		//查表以判断是否有错误
-		searchSymTable(p);
+		checkSymTable(p);
 	}
 	else if (p->num_of_child){
 		for(int i=0;i<p->num_of_child;i++)

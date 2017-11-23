@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "symtable.h"
 
 symNode* table[SIZE_OF_TABLE];
@@ -15,6 +16,13 @@ static unsigned int hash_pjw(char *name){
 	}
 	return val;
 }
+
+static void semanticError(int kind,int lineno){
+	printf("Error type %d at Line %d: ",kind,lineno);
+	switch(kind){
+		case 17:printf("Undefined structure.\n");break;
+	}
+}
 void initSymTable(){
 	memset(table,0,sizeof(symNode*)*SIZE_OF_TABLE);
 }
@@ -22,9 +30,12 @@ static void printType(Type type);
 static void printField(FieldList field){
 	if(field==NULL)
 		return ;
-
-	printf("%s\t",field->name);
-	printType(field->type);
+	if(field->name){
+		printf("%s\t",field->name);
+		printType(field->type);
+	}
+	else 
+		printf("(null)\t");
 	if(field->tail){
 		printf("-->");
 		printField(field->tail);
@@ -32,6 +43,8 @@ static void printField(FieldList field){
 	
 }
 static void printType(Type type){
+
+		assert(type);
 		switch(type->kind){
 			case 0:printf("Basic:");
 				   if(type->basic==0)
@@ -44,7 +57,7 @@ static void printType(Type type){
 				   printType(type->array.elem);
 				   break;
 
-			case 2:printf("Structure");
+			case 2:printf("Structure:");
 				   printField(type->structure);
 				   break;
 		}
@@ -55,7 +68,7 @@ static void printSymNode(symNode *t){
 	switch(t->kind){
 		case 0:printf("Variable\t");printType(t->info.type);break;
 		case 1:printf("Structure\t");printField(t->info.field);break;
-		case 2:printf("Funciton\t");break;
+		case 2:printf("Funciton\t");printField(t->info.para);break;
 	}
 
 	printf("\n");
@@ -89,17 +102,34 @@ static void insertSymTable(char *name,int kind,void * info){
 		}
 		t->tail = p;
 	}	
-
-
 }
 
+static bool searchSymTable(char *name,int kind, void **info){
+	unsigned int index = hash_pjw(name);
+	symNode *p = table[index];
+	while(p){
+		if(strcmp(name,p->name)==0&&kind==p->kind){
 
-static void VarDec(Node *p,Type type,FieldList field,int flag){	//flag=1: the field in structure ; flag=0 : variable definition
+			if(kind==Structure){
+				*info = p->info.field;
+			}
+			return true;
+		}
+		p = p->tail;
+	}	
+
+	return false;
+}
+
+static void VarDec(Node *p,Type type,FieldList field,int flag){	
+	//flag = 01 : the field in structure ; 
+	//flag = 10 : variable definition ;
+	//flag = 11 : both
 	if(p->num_of_child==1){
 		// VarDec -> id
-		if(flag==0)
+		if(flag&2)
 			insertSymTable(p->child[0]->lexeme,Variable,type);
-		else {
+		if (flag&1) {
 			field->name = p->child[0]->lexeme;
 			field->type = type;
 		}
@@ -152,7 +182,12 @@ static Type Specifier(Node *p);
 static void Def(Node *p,FieldList field){
 	//Def -> Specifier DecList SEMI
 	Type type = Specifier(p->child[0]);
-	DecList(p->child[1],type,field);//name type
+	if(type==NULL){
+		semanticError(17,p->lineno);
+		field->tail = NULL;
+	}
+	else
+		DecList(p->child[1],type,field);//name type
 
 }
 static FieldList DefList(Node *p){
@@ -175,32 +210,37 @@ static FieldList DefList(Node *p){
 
 	return field;
 }
-static FieldList StructSpecifier(Node *p){
-
+static Type StructSpecifier(Node *p){
+	Type type = NULL;
 	if(p->num_of_child==5){
 		// structSpecifier -> struct OptTag { DefList  }  
-		if(p->child[1]&&p->child[3]){
-			// OptTag -> id
-			FieldList field = DefList(p->child[3]);
-			insertSymTable(p->child[1]->child[0]->lexeme,Structure,field);
-			return field;
+		type = (Type) malloc(sizeof(struct Type_));
+		type->kind = STRUCTURE;
+		type->structure = NULL;
+		if(p->child[3]){
+			type->structure = DefList(p->child[3]);
 		}
-		else if (!p->child[1]){
-			
-		}	
-		else{
-			
+		if(p->child[1]){
+			insertSymTable(p->child[1]->child[0]->lexeme,Structure,type->structure);
 		}
 	}
-	else if (p->num_of_child==2){		// structSpecifier -> struct Tag
-		//field->name = p->child[1]->child[0]->lexeme;	
+	else if (p->num_of_child==2){		
+		// structSpecifier -> struct Tag
+		FieldList field ;
+		if(searchSymTable(p->child[1]->child[0]->lexeme,Structure,(void **)&field)){
+			type = (Type) malloc(sizeof(struct Type_));
+			type->kind = STRUCTURE;
+			type->structure = field;
+		}
 	}
 	else 
 		assert(0);
+	return type;
 }
 static Type Specifier(Node *p){
-	Type type = (Type)malloc(sizeof(struct Type_));
+	Type type;
 	if(strcmp(p->child[0]->symbol,"TYPE")==0){
+		type = (Type)malloc(sizeof(struct Type_));
 		type->kind = BASIC;
 		if(strcmp(p->child[0]->lexeme,"int")==0)
 			type->basic = INT;
@@ -210,8 +250,9 @@ static Type Specifier(Node *p){
 			assert(0);
 	}
 	else if (strcmp(p->child[0]->symbol,"StructSpecifier")==0){
-		type->kind = STRUCTURE;
-		type->structure = StructSpecifier(p->child[0]);
+		//type->kind = STRUCTURE;
+		//type->structure = StructSpecifier(p->child[0]);
+		type = StructSpecifier(p->child[0]);
 	}
 	else 
 		assert(0);
@@ -221,25 +262,83 @@ static Type Specifier(Node *p){
 static void ExtDecList(Node *p,Type type){
 	if(p->num_of_child==1){
 		//ExtDecList -> VarDec
-		VarDec(p->child[0],type,NULL,0);
+		VarDec(p->child[0],type,NULL,2);
 	}
 	else if(p->num_of_child==3){
 		//ExtDecList -> VarDec , ExtDecList
-		VarDec(p->child[0],type,NULL,0);
+		VarDec(p->child[0],type,NULL,2);
 		ExtDecList(p->child[2],type);	
 	}
+	else
+		assert(0);
+}
+static void ParamDec(Node *p,FieldList field){
+	//ParamDec -> Specifier VarDec
+	Type type = Specifier(p->child[0]);
+	if(type==NULL){
+		semanticError(17,p->lineno);
+	}
+	else
+		VarDec(p->child[1],type,field,3);
+}
+static FieldList VarList(Node *p){
+	FieldList field = (FieldList)malloc(sizeof(struct FieldList_));
+	ParamDec(p->child[0],field);//name type
+	if (p->num_of_child==3){
+		// VarList -> ParamDec , VarList
+		field->tail = VarList(p->child[2]);
+	}
+	else if (p->num_of_child==1){
+		// VarList -> ParamDec
+		field->tail = NULL;
+	}
+	else
+		assert(0);
+	return field;
+}
+
+static void FunDec(Node *p,Type ret_type){
+	ParaList_Ret para = (ParaList_Ret)malloc(sizeof(struct FieldList_));
+	para->name = "return";
+	para->type = ret_type;
+	
+	if(p->num_of_child==4){
+		// FunDec -> ID ( VarList )
+		para->tail = VarList(p->child[2]);	
+	}
+	else if(p->num_of_child==3){
+		// FunDec -> ID ( )
+		para->tail = NULL;
+	}
+	else 
+		assert(0);
+	insertSymTable(p->child[0]->lexeme,Function,para);	
 
 }
 static void ExtDef(Node *p){
 	Type type = Specifier(p->child[0]);
-	if(p->child[1]->symbol,"ExtDecList"){
+	if (strcmp(p->child[1]->symbol,"ExtDecList")==0){
 		// ExtDef -> Specifier ExtDecList SEMI
-		ExtDecList(p->child[1],type);	
+		if(type==NULL){
+			semanticError(17,p->lineno);
+		}
+		else
+			ExtDecList(p->child[1],type);
+
 	}
 	else if(strcmp(p->child[1]->symbol,"SEMI")==0){
 		// ExtDef -> Specifier SEMI
-		//do nothing
-		printf("224\n");
+		//do nothing with definition(except structure)
+	}
+	else if(strcmp(p->child[1]->symbol,"FunDec")==0){
+		// ExtDef -> Specifier FunDec CompSt
+		
+		// new type may not be defined in a return type
+		if(type==NULL){
+			semanticError(17,p->lineno);
+		}
+		else
+			FunDec(p->child[1],type);
 	}
 }
 
@@ -260,7 +359,7 @@ void updateSymTable(Node *p){	//p->symbol = ExtDef OR Def
 }
 
 
-void searchSymTable(Node *p){	//p->symbol = Exp
+void checkSymTable(Node *p){	//p->symbol = Exp
 	/*
 	Exp:...
 	*/

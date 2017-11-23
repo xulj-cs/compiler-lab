@@ -8,7 +8,7 @@
 //extern FieldList table[SIZE_OF_TABLE];
 void initSymTable();
 void updateSymTable(Node*);
-void searchSymTable(Node*);
+void checkSymTable(Node*);
 void printSymTable();
 typedef struct symNode{
 	char *name;
