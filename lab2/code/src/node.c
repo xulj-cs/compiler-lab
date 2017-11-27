@@ -82,7 +82,7 @@ static void printSubtree(Node *p,int depth){
 static void traverseSubtree(Node *p){
 	if (p==NULL)	
 		return ;
-	if (strcmp(p->symbol,"ExtDef")==0||strcmp(p->symbol,"Def")==0){
+	if (strcmp(p->symbol,"ExtDef")==0/*||strcmp(p->symbol,"Def")==0*/){
 		//分析以更新符号表	
 		updateSymTable(p);
 	}

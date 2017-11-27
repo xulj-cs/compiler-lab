@@ -21,7 +21,7 @@ int func(int a,int b,float c[10]){
 }
 */
 
-
+/*
 struct A{
 	int a;
 };
@@ -36,4 +36,7 @@ struct B{
 	struct B f;
 	int a;
 };
-
+*/
+int main(){
+	int a,b;
+}
