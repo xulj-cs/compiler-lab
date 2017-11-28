@@ -1,5 +1,6 @@
 #ifndef _TYPE_H_
 #define _TYPE_H_
+#include <stdbool.h>
 
 typedef struct Type_* Type;
 typedef struct FieldList_* FieldList;
@@ -23,5 +24,10 @@ struct FieldList_{
 };
 typedef FieldList ParaList_Ret;
 
+bool typeEq(Type,Type);
+bool isInt(Type);
+bool isFloat(Type);
+bool isStruct(Type);
+Type isField(FieldList,char *);
 #endif
 

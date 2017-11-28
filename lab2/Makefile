@@ -9,7 +9,7 @@ SRC := code/src
 INC := code/include
 OBJ := obj
 
-CFLAGS := -std=c99 -I $(INC)/
+CFLAGS := -std=c99 -I $(INC)/  -Wall #-Werror 
 LDFLAGS := -lfl -ly
 
 
@@ -33,18 +33,21 @@ Parser_BIN := ./parser
 
 
 Parser: $(Parser_BIN) 
-$(Parser_BIN): $(OBJ)/syntax.tab.o $(OBJ)/node.o $(OBJ)/symtable.o $(OBJ)/main.o 
+$(Parser_BIN): $(OBJ)/syntax.tab.o $(OBJ)/node.o $(OBJ)/symtable.o $(OBJ)/type.o $(OBJ)/main.o 
 	$(CC) -o $@ $^ $(LDFLAGS)  
 
 $(OBJ)/syntax.tab.o: $(FlexSrc) $(BisonSrc)
 	@mkdir -p $(OBJ)/
 	$(FLEX) -o $(FlexObj) $(FlexSrc) 
 	$(BISON) -o $(BisonObj_C) $(Bison_FLAGS) $(Bison_DEBUG)  $(BisonSrc) 
-	$(CC) $(CFLAGS)	-c -o $@ $(BisonObj_C)
+	$(CC) -I $(INC) -c -o $@ $(BisonObj_C)
 $(OBJ)/node.o:	$(SRC)/node.c
 	@mkdir -p $(OBJ)/
 	$(CC) $(CFLAGS)	-c -o $@ $^
 $(OBJ)/symtable.o: $(SRC)/symtable.c
+	@mkdir -p $(OBJ)/
+	$(CC) $(CFLAGS)	-c -o $@ $^
+$(OBJ)/type.o: $(SRC)/type.c
 	@mkdir -p $(OBJ)/
 	$(CC) $(CFLAGS)	-c -o $@ $^
 $(OBJ)/main.o:	$(SRC)/main.c
@@ -59,7 +62,9 @@ $(OBJ)/main.o:	$(SRC)/main.c
 
 TESTFILE := test.c
 test: all
-	$(Parser_BIN) $(TESTFILE) 
+	$(Parser_BIN) $(TESTFILE)
+pretest: all
+	$(Parser_BIN) pretest/$(TESTFILE)
 test-all: all
 	for testfile in $(shell find ./pretest/*); \
 	do \

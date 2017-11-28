@@ -1,42 +1,17 @@
-/*struct A{
-	int a,b[10][123][432],fa;
-	float b[12],a[32],c;
-	int c;
-};
-
-int a;
-int b;
-float b[12];
-struct B{
-};
-struct C{
-	int a;
-}c[10];
-
-int func1(){
-
-}
-int func(int a,int b,float c[10]){
-
-}
-*/
-
-/*
+int  a;
 struct A{
-	int a;
+	int A1;
+	int A2;
+};
+int a(){
+	float b[10],a[10][1];
+	int A;
+}
+
+struct b{
+	int b1,b2;
 };
 
-
-struct B{
-	struct A c;
-	struct B c;
+float a(){
 	int a;
-	struct D d;
-	struct B a,b;
-	struct B f;
-	int a;
-};
-*/
-int main(){
-	int a,b;
 }
