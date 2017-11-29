@@ -3,7 +3,7 @@
 
 //#define MAX_SYMBOL_NAME_LEN 20
 #define MAX_LEXEME_NAME_LEN 32
-#define MAX_CHILD_NUM 10
+#define MAX_CHILD_NUM 7
 
 typedef struct AST_Node { //abstract syntax tree
 //	char symbol[MAX_SYMBOL_NAME_LEN];
