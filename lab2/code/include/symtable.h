@@ -11,7 +11,7 @@ void updateSymTable(Node*);
 void checkSymTable(Node*);
 void printSymTable();
 typedef struct symNode{
-	char *name;
+	const char *name;
 	enum{Variable,Structure,Function} kind;
 	union{
 		Type type;		//for variable 

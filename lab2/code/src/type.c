@@ -51,7 +51,7 @@ bool isStruct(Type a){
 	return a->kind == STRUCTURE;	
 }
 
-Type isField(FieldList field,char *name){
+Type isField(FieldList field,const char *name){
 	FieldList p = field;
 	while(p){
 		if(strcmp(p->name,name)==0){

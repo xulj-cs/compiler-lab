@@ -1,17 +1,19 @@
-- [ ] 1.Undefined variable
-- [ ] 2.Undefined function
+- [x] 1.Undefined variable
+- [x] 2.Undefined function
 - [x] 3.Redefined variable
 - [x] 4.Redefined function
-- [ ] 5.Type mismatched for assignment
+- [x] 5.Type mismatched for assignment
 - [ ] 6.The left-hand side of an assignment must be a variable
-- [ ] 7.Type mismatched for operands
-- [ ] 8.Type mismatched for return
-- [ ] 9.Function is not applicable for arguments
-- [ ] 10.Non-array-type ID
-- [ ] 11.Non-function-type ID
-- [ ] 12.Non-int number in [ ]
-- [ ] 13.Illegal use of "."
-- [ ] 14.Non-existent field
+- [x] 7.Type mismatched for operands
+- [x] 8.Type mismatched for return
+- [x] 9.Function is not applicable for arguments
+- [x] 10.Non-array-type ID
+- [x] 11.Non-function-type ID
+- [x] 12.Non-int number in [ ]
+- [x] 13.Illegal use of "."
+- [x] 14.Non-existent field
 - [ ] 15.Redefined field
 - [x] 16.Redefined structure
 - [x] 17.Undefined structure
+
+

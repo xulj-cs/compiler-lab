@@ -18,7 +18,7 @@ struct Type_{
 };
 
 struct FieldList_{
-	char *name;
+	const char *name;
 	Type type;
 	FieldList tail;
 };
@@ -28,7 +28,7 @@ bool typeEq(Type,Type);
 bool isInt(Type);
 bool isFloat(Type);
 bool isStruct(Type);
-Type isField(FieldList,char *);
+Type isField(FieldList,const char *);
 Type isArray(Type);
 #endif
 

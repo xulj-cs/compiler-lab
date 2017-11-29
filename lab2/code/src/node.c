@@ -18,8 +18,10 @@ static void initNode(Node *p){
 
 Node *newLeaf(const char*symbol){
 	Node *p = (Node *)malloc(sizeof(Node));
-	strcpy(p->symbol,symbol);
+//	strcpy(p->symbol,symbol);
 	strcpy(p->lexeme,yytext);
+	p->symbol = symbol;
+//	p->lexeme = yytext;
 	p->lineno = yylineno;
 	initNode(p);
 	return p;
@@ -27,7 +29,8 @@ Node *newLeaf(const char*symbol){
 
 Node *newNode(const char* symbol,int num_of_child,...){
 	Node *p = (Node *)malloc(sizeof(Node));
-	strcpy(p->symbol,symbol);
+//	strcpy(p->symbol,symbol);
+	p->symbol = symbol;
 	initNode(p);
 
 	// add children
@@ -81,18 +84,25 @@ static void printSubtree(Node *p,int depth){
 static void traverseSubtree(Node *p){
 	if (p==NULL)	
 		return ;
-	if (strcmp(p->symbol,"ExtDef")==0||strcmp(p->symbol,"Def")==0){
+	if (strcmp(p->symbol,"ExtDef")==0/*||strcmp(p->symbol,"Def")==0*/){
 		//分析以更新符号表	
 		updateSymTable(p);
 	}
-	else if (strcmp(p->symbol,"Exp")==0){
-		//查表以判断是否有错误
-		checkSymTable(p);
-	}
-	/*else*/ if (p->num_of_child){
+	else if (p->num_of_child){
 		for(int i=0;i<p->num_of_child;i++)
 			traverseSubtree(p->child[i]);
 	}
+/*	else{
+		 if (strcmp(p->symbol,"Exp")==0){
+			//查表以判断是否有错误
+			checkSymTable(p);
+		}
+		 else if (p->num_of_child){
+			for(int i=0;i<p->num_of_child;i++)
+				traverseSubtree(p->child[i]);
+		}
+	}
+*/
 }
 void printAST(){
 //	printf("here we begin to print the tree... \n");

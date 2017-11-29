@@ -61,10 +61,11 @@ $(OBJ)/main.o:	$(SRC)/main.c
 .PHONY: clean test test-all clean-temp
 
 TESTFILE := test.c
+No := 0
 test: all
 	$(Parser_BIN) $(TESTFILE)
 pretest: all
-	$(Parser_BIN) pretest/$(TESTFILE)
+	$(Parser_BIN) pretest/$(No).txt
 test-all: all
 	for testfile in $(shell find ./pretest/*); \
 	do \
