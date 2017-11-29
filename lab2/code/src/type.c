@@ -1,7 +1,7 @@
 #include <type.h>
 #include <string.h>
 #include <stdlib.h>
-static bool fieldEq(FieldList a,FieldList b){
+bool fieldEq(FieldList a,FieldList b){
 	if(!a&&!b)
 		return true;
 	if((a&&!b)||(b&&!a))
@@ -62,5 +62,11 @@ Type isField(FieldList field,char *name){
 	return NULL;
 }	
 
-
+Type isArray(Type a){
+	if(!a)
+		return NULL;
+	if(a->kind == ARRAY)
+		return a->array.elem;
+	return NULL;
+}
 

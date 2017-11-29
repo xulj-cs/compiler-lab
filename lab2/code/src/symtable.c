@@ -72,7 +72,7 @@ static void printSymNode(symNode *t){
 	switch(t->kind){
 		case 0:printf("Variable\t");printType(t->info.type);break;
 		case 1:printf("Structure\t");printField(t->info.field);break;
-		case 2:printf("Funciton\t");printField(t->info.para);break;
+		case 2:printf("Funciton\t");printField(t->info.para_ret);break;
 	}
 
 	printf("\n");
@@ -97,12 +97,18 @@ static bool searchSymTable(char *name,int kind, void **info,int flag){
 	while(p){
 		if(strcmp(name,p->name)==0&&kind==p->kind){
 
-			if(kind==Variable && flag){
+/*			if(kind==Variable && flag){
 				*info = p->info.type;
 			}
 			if(kind==Structure && flag){
 				*info = p->info.field;
 			}
+			if(kind==Function && flag){
+				*info = p->info.para_ret;
+			}
+*/
+			if(flag)
+				memcpy(info,&p->info,sizeof(p->info));
 			return true;
 		}
 		p = p->tail;
@@ -434,6 +440,18 @@ void updateSymTable(Node *p){	//p->symbol = ExtDef // OR Def
 	}	
 }
 
+static Type Exp(Node *p);
+static bool argsEq(Node *p,FieldList para){
+	if(!para)
+		return false;
+	if(p->num_of_child==3){
+		return typeEq(para->type,Exp(p->child[0])) && argsEq(p->child[2],para->tail); 
+	}
+	else/* if(p->num_of_child==1) */{
+		return typeEq(para->type,Exp(p->child[0])) && para->tail == NULL;
+	}
+
+}
 
 static Type Exp(Node *p){
 
@@ -486,7 +504,7 @@ static Type Exp(Node *p){
 			//Exp -> ( Exp )
 			return Exp(p->child[1]);
 		}
-		else if(strcmp(p->child[1]->symbol,"Dot")==0){
+		else if(strcmp(p->child[1]->symbol,"DOT")==0){
 			//Exp -> Exp . ID
 			Type a = Exp(p->child[0]);
 			if(!isStruct(a))
@@ -540,13 +558,40 @@ static Type Exp(Node *p){
 	}
 	else if (p->num_of_child==4){
 		// Exp -> Exp [ Exp ]	
+		Type a = Exp(p->child[0]);
+		Type b = Exp(p->child[2]);
+		if (!isInt(b))
+			semanticError(12,p->lineno,NULL);
+		else{
+			Type elem;
+			if(!(elem=isArray(a)))
+				semanticError(10,p->lineno,NULL);
+			else
+				return elem;
+		}
 	}
 
 	if(strcmp(p->child[0]->symbol,"ID") == 0 && p->num_of_child >=3){
 		// Exp -> ID ( ) || ID ( ARGS )
+			ParaList_Ret para_ret ;
+			if(!searchSymTable(p->child[0]->lexeme,Function,(void **)&para_ret,1))
+				semanticError(11,p->lineno,NULL);
+			else{
+				if(p->num_of_child==3){
+					if(para_ret->tail)
+						semanticError(9,p->lineno,NULL);
+				}
+				else if(p->num_of_child==4){
+					if(!argsEq(p,para_ret->tail))
+						semanticError(9,p->lineno,NULL);
+				}
+				else 
+					return para_ret->type;
+			}
 	}
 	return NULL;
 }
+
 void checkSymTable(Node *p){	//p->symbol = Exp
 	/*
 	Exp:...

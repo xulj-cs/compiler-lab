@@ -28,7 +28,6 @@ Node *newLeaf(const char*symbol){
 Node *newNode(const char* symbol,int num_of_child,...){
 	Node *p = (Node *)malloc(sizeof(Node));
 	strcpy(p->symbol,symbol);
-//	p->lineno = yylineno;
 	initNode(p);
 
 	// add children

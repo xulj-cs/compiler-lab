@@ -16,7 +16,7 @@ typedef struct symNode{
 	union{
 		Type type;		//for variable 
 		FieldList field;	//for struct definition
-		ParaList_Ret para;	// for function definition
+		ParaList_Ret para_ret;	// for function definition
 	}info;
 
 	struct symNode* tail;

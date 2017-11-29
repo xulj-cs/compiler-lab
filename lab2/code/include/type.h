@@ -29,5 +29,6 @@ bool isInt(Type);
 bool isFloat(Type);
 bool isStruct(Type);
 Type isField(FieldList,char *);
+Type isArray(Type);
 #endif
 
