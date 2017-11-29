@@ -159,8 +159,8 @@ Exp     : Exp ASSIGNOP Exp      {$$ = newNode("Exp", 3, $1, $2, $3);}
         | FLOAT                 {$$ = newNode("Exp", 1, $1);}
         ;
     
-Args    : Exp COMMA Args        {$$ = newNode("Exp", 3, $1, $2, $3);}
-        | Exp                   {$$ = newNode("Exp", 1, $1);}
+Args    : Exp COMMA Args        {$$ = newNode("Args", 3, $1, $2, $3);}
+        | Exp                   {$$ = newNode("Args", 1, $1);}
         ;
 
 
