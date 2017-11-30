@@ -44,7 +44,7 @@ Node *newNode(const char* symbol,int num_of_child,...){
 	p->lineno = p->child[0]->lineno;
 	return p;
 }
-
+/*	for lab1 ouput.....
 static void printSubtree(Node *p,int depth){
 	if (p == NULL)
 		return ;	//for the non-terminals that product epsilon
@@ -61,7 +61,7 @@ static void printSubtree(Node *p,int depth){
 	else{
 		//print leaf 
 		if(strcmp(p->symbol,"INT")==0){
-			if( /*p->lexeme[0]=='0'&&*/ p->lexeme[1]=='x'||p->lexeme[1]=='X')
+			if( p->lexeme[1]=='x'||p->lexeme[1]=='X')
 				printf("%s: %d\n",p->symbol,(int)strtol(p->lexeme,NULL,16));
 			else if(p->lexeme[0]=='0')
 				printf("%s: %d\n",p->symbol,(int)strtol(p->lexeme,NULL,8));
@@ -80,36 +80,23 @@ static void printSubtree(Node *p,int depth){
 			
 	}
 }
-
+*/
 static void traverseSubtree(Node *p){
 	if (p==NULL)	
 		return ;
 	if (strcmp(p->symbol,"ExtDef")==0/*||strcmp(p->symbol,"Def")==0*/){
-		//分析以更新符号表	
 		updateSymTable(p);
 	}
 	else if (p->num_of_child){
 		for(int i=0;i<p->num_of_child;i++)
 			traverseSubtree(p->child[i]);
 	}
-/*	else{
-		 if (strcmp(p->symbol,"Exp")==0){
-			//查表以判断是否有错误
-			checkSymTable(p);
-		}
-		 else if (p->num_of_child){
-			for(int i=0;i<p->num_of_child;i++)
-				traverseSubtree(p->child[i]);
-		}
-	}
-*/
 }
 void printAST(){
-//	printf("here we begin to print the tree... \n");
 //	printSubtree(root,0);
 
 	initSymTable();
 	traverseSubtree(root);
 
-	printSymTable();
+//	printSymTable();
 }
