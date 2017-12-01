@@ -38,6 +38,8 @@ static void semanticError(int kind,int lineno){
 			case 15:printf("Redefined field in struct OR initialization in struct field");break;
 			case 16:printf("Redefined struct OR duplicate struct name");break;
 			case 17:printf("Undefined struct");break;
+			case 18:printf("Undefined function but declare");break;
+			case 19:printf("Inconsistent declaration/definition of function");break;
 	}
 	
 	printf(".\n");
@@ -45,6 +47,8 @@ static void semanticError(int kind,int lineno){
 void initSymTable(){
 	memset(table,0,sizeof(symNode*)*SIZE_OF_TABLE);
 }
+
+/*		for debugging ...
 static void printType(Type type);
 static void printField(FieldList field){
 	if(field==NULL)
@@ -63,7 +67,10 @@ static void printField(FieldList field){
 }
 static void printType(Type type){
 
-		assert(type);
+		if(!type){
+			printf("(null)");
+			return;
+		}
 		switch(type->kind){
 			case 0:printf("Basic:");
 				   if(type->basic==0)
@@ -87,7 +94,7 @@ static void printSymNode(symNode *t){
 	switch(t->kind){
 		case 0:printf("Variable\t");printType(t->info.type);break;
 		case 1:printf("Structure\t");printField(t->info.field);break;
-		case 2:printf("Funciton\t");printField(t->info.para_ret);break;
+		case 2:printf("Function\t");printField(t->info.para_ret);break;
 	}
 
 	printf("\n");
@@ -104,6 +111,7 @@ void printSymTable(){
 		}
 	}
 }
+*/
 static bool searchSymTable(const char *name,int kind, void **info,int flag){
 	// flag 1 : if success , return info
 	// flag 0 ：if success , return nothing
@@ -120,13 +128,59 @@ static bool searchSymTable(const char *name,int kind, void **info,int flag){
 
 	return false;
 }
-static int insertSymTable(const char *name,int kind,void * info){
+static int searchSymTable_f(const char *name,ParaList_Ret paraList_ret,int lineno){
+	//ret = 0 :neither dec nor def
+	//ret = 1 :redefined funcion
+	//ret = 2 :def dec mismatched or dec & dec mismatched
+	//ret = 3 :def->dec or dec->def or def->def matched
+	unsigned int index = hash_pjw(name);
+	symNode *p = table[index];
+	while(p){
+		if(strcmp(name,p->name)==0&&p->kind==Function){
+			if(lineno==0){
+				//definition
+				if(p->lineno==0){
+					//have been definition
+					return 1;
+				}
+				else{
+					//have been declaration
+					if(!fieldEq(paraList_ret,p->info.para_ret))
+						return 2;
+					p->lineno = 0;
+					return 3;
+				}
+			}
+			else{
+				//declaration
+				if(p->lineno==0){
+					//have been definition
+					if(!fieldEq(paraList_ret,p->info.para_ret))
+						return 2;
+					return 3;
+				}
+				else{
+					//have been declaration
+					if(!fieldEq(paraList_ret,p->info.para_ret))
+						return 2;
+					p->lineno = lineno;
+					return 3;
+				}
+
+			}
+		}
+		p = p->tail;
+	}	
+	return 0;	
+}
+static int insertSymTable(const char *name,int kind,void * info,int func_line){
 	//return value 0 : sucess
 	//1 :	(new)V->(old)V
 	//2 :  	(new)V->(old)S
 	//3 :   (new)S->(old)V
 	//4 :   (new)S->(old)S
-	//5 :   (new)F->(old)F
+	//5 :	redefined function
+	//6 :   mismatched
 	//printf("insertSymTable:%d--%s \n",kind,name);
 	if(kind == Variable){
 		if(searchSymTable(name,Variable,NULL,0))
@@ -141,13 +195,20 @@ static int insertSymTable(const char *name,int kind,void * info){
 			return 4;		
 	}
 	else if (kind == Function){
-		if(searchSymTable(name,Function,NULL,0))
+		int ret = searchSymTable_f(name,info,func_line);
+		if(ret == 3)
+			return 0;
+		else if(ret == 1)
 			return 5;
+		else if(ret == 2)
+			return 6;
 	}
 	symNode *p = (symNode *)malloc(sizeof(symNode));
 	p->name = name;
 	p->kind = kind;
 	memcpy(&p->info,&info,sizeof(info));
+	if(kind==Function)
+		p->lineno = func_line;
 	p->tail = NULL;
 	unsigned int index = hash_pjw(name);
 	if(table[index]==NULL){
@@ -172,7 +233,7 @@ static void VarDec(Node *p,Type type,FieldList head,int flag){
 	if(p->num_of_child==1){
 		// VarDec -> id
 		if(flag&2){
-			int ret = insertSymTable(p->child[0]->lexeme,Variable,type);
+			int ret = insertSymTable(p->child[0]->lexeme,Variable,type,0);
 			if(ret == 1 || ret == 2){
 				SERROR(3)	;
 			}
@@ -223,8 +284,10 @@ static void Dec(Node *p,Type type,FieldList head,int flag){
 	}
 	else if(p->num_of_child==3){ 
 		//Dec -> VarDec = Exp
-		if(flag==1)
+		if(flag==1){
+			VarDec(p->child[0],type,head,flag);
 			SERROR(15);
+		}
 		else if (flag==2){
 			
 			VarDec(p->child[0],type,head,flag);
@@ -284,7 +347,7 @@ static Type StructSpecifier(Node *p){
 			type->structure = head->tail;
 		}
 		if(p->child[1]){
-			int ret = insertSymTable(p->child[1]->child[0]->lexeme,Structure,type->structure);
+			int ret = insertSymTable(p->child[1]->child[0]->lexeme,Structure,type->structure,0);
 			if(ret == 3|| ret ==4){
 				SERROR(16);
 			}
@@ -339,21 +402,26 @@ static void ExtDecList(Node *p,Type type){
 	else
 		assert(0);
 }
-static void ParamDec(Node *p,FieldList head){
+static void ParamDec(Node *p,FieldList head,int flag){
 	//ParamDec -> Specifier VarDec
 	Type type = Specifier(p->child[0]);
 	if(type==NULL){
 		SERROR(17);
 	}
-	else
-		VarDec(p->child[1],type,head,3);
+	else{
+		if(flag)	
+			VarDec(p->child[1],type,head,3);
+		else
+			VarDec(p->child[1],type,head,1);
+			
+	}
 }
-static void VarList(Node *p,FieldList head){
+static void VarList(Node *p,FieldList head,int flag){
 //	FieldList field = (FieldList)malloc(sizeof(struct FieldList_));
-	ParamDec(p->child[0],head);//name type
+	ParamDec(p->child[0],head,flag);//name type
 	if (p->num_of_child==3){
 		// VarList -> ParamDec , VarList
-		VarList(p->child[2],head);
+		VarList(p->child[2],head,flag);
 	}
 	else if (p->num_of_child==1){
 		// VarList -> ParamDec
@@ -362,18 +430,28 @@ static void VarList(Node *p,FieldList head){
 		assert(0);
 }
 
-static void FunDec(Node *p,Type ret_type){
+static void FunDec(Node *p,Type ret_type,int flag){
+	//flag = 1 :definition
+	//flag = 0 :declaration
 	ParaList_Ret para = (ParaList_Ret)malloc(sizeof(struct FieldList_));
 	para->name = "return";
 	para->type = ret_type;
 	para->tail = NULL;
 	if(p->num_of_child==4){
 		// FunDec -> ID ( VarList )
-		VarList(p->child[2],para);
+		VarList(p->child[2],para,flag);
 	}
-	int ret = insertSymTable(p->child[0]->lexeme,Function,para);	
+	int lineno ;
+	if(flag==1)
+		lineno=0;
+	else 
+		lineno = p->lineno;
+	int ret = insertSymTable(p->child[0]->lexeme,Function,para,lineno);	
 	if(ret == 5){
 		SERROR(4);
+	}
+	else if(ret == 6){
+		SERROR(19);
 	}
 }
 
@@ -612,16 +690,20 @@ static void ExtDef(Node *p){
 		//do nothing with definition(except structure)
 	}
 	else if(strcmp(p->child[1]->symbol,"FunDec")==0){
-		// ExtDef -> Specifier FunDec CompSt
+		// ExtDef -> Specifier FunDec CompSt/SEMI
 		
 		// new type may not be defined in a return type
 		if(type==NULL){
 			SERROR(17);
 		}
-		else
-			FunDec(p->child[1],type);
-		
-		CompSt(p->child[2],type);
+		/*else*/{
+			if(strcmp(p->child[2]->symbol,"CompSt")==0){
+				FunDec(p->child[1],type,1);
+				CompSt(p->child[2],type);	
+			}
+			else
+				FunDec(p->child[1],type,0);
+		}	
 	}
 }
 
@@ -630,11 +712,20 @@ void updateSymTable(Node *p){	//p->symbol = ExtDef // OR Def
 }
 
 
-void checkSymTable(Node *p){	//p->symbol = Exp
-	/*
-	Exp:...
-	*/
-	Exp(p);
+void checkSymTable(){
+
+	symNode *p;
+	for(int i=0;i<SIZE_OF_TABLE;i++){
+		if((p=table[i])){
+			if(p->kind == Function && p->lineno!=0)
+				SERROR(18);
+			while((p = p->tail)){
+				if(p->kind == Function && p->lineno!=0)
+					SERROR(18);
+			}
+		}
+	}
+
 }
 
 

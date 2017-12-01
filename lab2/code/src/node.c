@@ -97,6 +97,6 @@ void printAST(){
 
 	initSymTable();
 	traverseSubtree(root);
-
+	checkSymTable();	
 //	printSymTable();
 }

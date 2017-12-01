@@ -55,6 +55,7 @@ ExtDef      : Specifier ExtDecList SEMI     {$$ = newNode("ExtDef", 3, $1, $2, $
             | Specifier SEMI                {$$ = newNode("ExtDef", 2, $1, $2);}    
 			| Specifier error SEMI			{ERROR++;}
             | Specifier FunDec CompSt       {$$ = newNode("ExtDef", 3, $1, $2, $3);}
+            | Specifier FunDec SEMI		    {$$ = newNode("ExtDef", 3, $1, $2, $3);}
             ;
 ExtDecList  : VarDec                        {$$ = newNode("ExtDecList", 1, $1);} 
             | VarDec COMMA ExtDecList       {$$ = newNode("ExtDecList", 3, $1, $2, $3);} 

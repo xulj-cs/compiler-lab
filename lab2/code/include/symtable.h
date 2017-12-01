@@ -8,8 +8,9 @@
 //extern FieldList table[SIZE_OF_TABLE];
 void initSymTable();
 void updateSymTable(Node*);
-void checkSymTable(Node*);
+void checkSymTable();
 void printSymTable();
+
 typedef struct symNode{
 	const char *name;
 	enum{Variable,Structure,Function} kind;
@@ -18,7 +19,7 @@ typedef struct symNode{
 		FieldList field;	//for struct definition
 		ParaList_Ret para_ret;	// for function definition
 	}info;
-
+	int lineno ;	// for function : if defined then lines=0 ; else declartion
 	struct symNode* tail;
 }symNode;
 #endif

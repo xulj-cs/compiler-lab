@@ -25,6 +25,7 @@ struct FieldList_{
 typedef FieldList ParaList_Ret;
 
 bool typeEq(Type,Type);
+bool fieldEq(FieldList,FieldList);
 bool isInt(Type);
 bool isFloat(Type);
 bool isStruct(Type);
