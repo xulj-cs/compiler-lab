@@ -5,76 +5,62 @@ LD := ld
 FLEX := flex
 BISON := bison
 
-SRC := code/src
-INC := code/include
-OBJ := obj
+SRC := code/src/
+INC := code/include/
+OBJ := obj/
 
-CFLAGS := -std=c99 -I $(INC)/  -Wall #-Werror 
+CFLAGS := -c -std=c99 -I $(INC)  -Wall #-Werror 
 LDFLAGS := -lfl -ly
 
+target :=  ./parser
 
-all: Parser
+all : $(target)
 
 # rules for building the project #
 
 
-FlexSrc := $(SRC)/lexical.l
-FlexObj := $(OBJ)/lex.yy.c
+FlexSrc := $(SRC)lexical.l
+FlexObj := $(OBJ)lex.yy.c
 
-BisonSrc := $(SRC)/syntax.y
-BisonObj = $(BisonObj_H) $(BisonObj_C) 
-BisonObj_H := $(OBJ)/syntax.tab.h
-BisonObj_C := $(OBJ)/syntax.tab.c
+BisonSrc := $(SRC)syntax.y
+BisonObj := $(OBJ)syntax.tab
+BisonObj_H := $(BisonObj).h
+BisonObj_C := $(BisonObj).c
+BisonObj_O := $(BisonObj).o
 
 Bison_FLAGS := -d 
-Bison_DEBUG := 
+Bison_DEBUG := #-v 
 
-Parser_BIN := ./parser
+SRCS := $(shell find $(SRC) -name "*.c")
+OBJS := $(BisonObj_O) $(patsubst $(SRC)%.c,$(OBJ)%.o,$(SRCS)) 
 
-
-Parser: $(Parser_BIN) 
-$(Parser_BIN): $(OBJ)/syntax.tab.o $(OBJ)/node.o $(OBJ)/symtable.o $(OBJ)/type.o $(OBJ)/main.o 
+$(target): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)  
 
-$(OBJ)/syntax.tab.o: $(FlexSrc) $(BisonSrc)
-	@mkdir -p $(OBJ)/
+$(BisonObj_O): $(FlexSrc) $(BisonSrc)
+	@mkdir -p $(OBJ)
 	$(FLEX) -o $(FlexObj) $(FlexSrc) 
-	$(BISON) -o $(BisonObj_C) $(Bison_FLAGS) $(Bison_DEBUG)  $(BisonSrc) 
-	$(CC) -I $(INC) -c -o $@ $(BisonObj_C)
-$(OBJ)/node.o:	$(SRC)/node.c
-	@mkdir -p $(OBJ)/
-	$(CC) $(CFLAGS)	-c -o $@ $^
-$(OBJ)/symtable.o: $(SRC)/symtable.c
-	@mkdir -p $(OBJ)/
-	$(CC) $(CFLAGS)	-c -o $@ $^
-$(OBJ)/type.o: $(SRC)/type.c
-	@mkdir -p $(OBJ)/
-	$(CC) $(CFLAGS)	-c -o $@ $^
-$(OBJ)/main.o:	$(SRC)/main.c
-	@mkdir -p $(OBJ)/
-	$(CC) $(CFLAGS)	-c -o $@ $^
-
-	
-
+	$(BISON) -o $(BisonObj_C) $(BisonSrc) $(Bison_FLAGS) $(Bison_DEBUG)  
+	$(CC) -o $@ $(BisonObj_C) -c -I $(INC)
+$(OBJ)%.o:$(SRC)%.c
+	@mkdir -p $(@D)
+	$(CC) -o $@ $< $(CFLAGS)
 
 # some convinient rules #
 .PHONY: clean test test-all clean-temp
 
 TESTFILE := test.c
-No := 0
 test: all
-	$(Parser_BIN) $(TESTFILE)
-pretest: all
-	$(Parser_BIN) pretest/$(No).txt
+	$(target) $(TESTFILE)
 test-all: all
-	for testfile in $(shell find ./pretest/*); \
+	for testfile in $(shell find ./pretest/*.txt); \
 	do \
 		echo $$testfile; \
-		$(Parser_BIN) $$testfile; \
+		$(target) $$testfile; \
 	done
 
 clean-temp:
 	-rm -rf $(OBJ)
 
 clean:clean-temp
-	-rm -f $(Parser_BIN)
+	-rm -f $(target)

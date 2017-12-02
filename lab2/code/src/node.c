@@ -5,7 +5,7 @@
 
 #include "node.h"
 #include "symtable.h"
-
+#include "semanticAnalysis.h"
 extern int yylineno;
 extern char *yytext;
 
@@ -85,7 +85,7 @@ static void traverseSubtree(Node *p){
 	if (p==NULL)	
 		return ;
 	if (strcmp(p->symbol,"ExtDef")==0/*||strcmp(p->symbol,"Def")==0*/){
-		updateSymTable(p);
+		semanticAnalysis(p);
 	}
 	else if (p->num_of_child){
 		for(int i=0;i<p->num_of_child;i++)
