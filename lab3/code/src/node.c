@@ -7,6 +7,8 @@
 #include "symtable.h"
 #include "semanticAnalysis.h"
 #include "interCode.h"
+#include "ir_gen.h"
+
 extern int yylineno;
 extern char *yytext;
 
@@ -96,7 +98,13 @@ static void traverseSubtree(Node *p){
 static void traverseSubtree2(Node *p){
 	if(p==NULL)
 		return;
-
+	if(strcmp(p->symbol,"ExtDef")==0){
+		IR_Gen(p);
+	}
+	else if (p->num_of_child){
+		for(int i=0;i<p->num_of_child;i++)
+			traverseSubtree2(p->child[i]);
+	}
 }
 void printAST(){
 //	printSubtree(root,0);
@@ -108,6 +116,6 @@ void printAST(){
 
 	if(!SERROR){
 		traverseSubtree2(root);
-		print_ICs();
+		print_ICROOT();
 	}
 }

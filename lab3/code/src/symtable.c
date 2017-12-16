@@ -53,6 +53,7 @@ bool searchSymTable(const char *name,int kind, void **info,int flag){
 
 	return false;
 }
+
 int searchSymTable_f(const char *name,ParaList_Ret paraList_ret,int lineno){
 	//ret = 0 :neither dec nor def
 	//ret = 1 :redefined funcion
