@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <ctype.h>
 #include "interCode.h"
 
 
@@ -9,7 +10,7 @@
 //	ICs = NULL;
 //}
 
-InterCodes* ICs_push(InterCodes *head,InterCode *code){
+/*InterCodes* ICs_push(InterCodes *head,InterCode *code){
 	if(head == NULL){
 		head  = (InterCodes*)malloc(sizeof(InterCodes));
 		head->code = code;
@@ -27,7 +28,9 @@ InterCodes* ICs_push(InterCodes *head,InterCode *code){
 	}
 	return head;
 }
-InterCodes *IC_concat(int num_of_code,...){
+*/
+//only use IC_concat(1) :which means IC->ICs
+/*InterCodes *IC_concat(int num_of_code,...){
 	InterCodes *head = NULL;
 	va_list codeList;
 	va_start(codeList,num_of_code);
@@ -35,6 +38,13 @@ InterCodes *IC_concat(int num_of_code,...){
 		head = ICs_push(head,va_arg(codeList,InterCode*));
 	}	
 	va_end(codeList);
+	return head;
+}
+*/
+InterCodes* IC_2_ICs(InterCode *code){
+	InterCodes *head  = (InterCodes*)malloc(sizeof(InterCodes));
+	head->code = code;
+	head->prev = head->next = head;	
 	return head;
 }
 static void ICs_concat_2(InterCodes *head1,InterCodes* head2){
@@ -62,9 +72,9 @@ InterCodes *ICs_concat(int num,...){
 	va_end(codesList);
 	return head;
 }
-Operand new_operand(char *info,int flag){
+Operand new_operand(char *info){
 	Operand op = (Operand)malloc(sizeof(struct Operand_));
-	op->kind = flag==0?CONSTANT:VARIABLE;
+	op->kind = isdigit(info[0])?CONSTANT:VARIABLE;
 	op->info = info;
 	return op;
 
@@ -78,8 +88,8 @@ void print_operand(Operand op){
 void print_IC(InterCode* ic){
 	assert(ic);
 	switch(ic->kind){
-		case FUN_DEC:printf("FUNCTION %s :\n",ic->name);break;
-		case VAR_DEC:printf("PARAM %s\n",ic->name);break;			 
+		case FUNC_DEC:printf("FUNCTION %s :\n",ic->name);break;
+		case PARAM:	printf("PARAM %s\n",ic->name);break;			 
 		case ASSIGN:
 					print_operand(ic->assign.left);
 					printf(" := ");
@@ -107,6 +117,24 @@ void print_IC(InterCode* ic){
 		}
 		case RET:	printf("RETURN ");
 					printf("%s\n",ic->name);
+					break;
+		case IF :	printf("IF ");
+					print_operand(ic->cond.left);
+					printf(" %s ",ic->cond.op);
+					print_operand(ic->cond.right);
+					printf(" ");
+					break;
+		case GOTO:  printf("GOTO %s\n",ic->name);
+					break;
+		case LABEL: printf("LABEL %s :\n",ic->name);
+					break;
+		case READ:	printf("READ %s\n",ic->name);
+					break;
+		case WRITE:	printf("WRITE %s\n",ic->name);
+					break;
+		case FUNC_CALL: printf("%s := CALL %s\n",ic->func.place,ic->func.func_name);
+					   break;	
+		case ARG :	printf("ARG %s\n",ic->name);
 					break;
 		default : printf("TBD");
 	}

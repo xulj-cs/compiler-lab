@@ -25,6 +25,7 @@ bool searchSymTable(const char *,int,void **,int);
 int searchSymTable_f(const char *,ParaList_Ret,int);
 int insertSymTable(const char *,int ,void *,int);
 void checkSymTable();
+int num_of_args(char *);
 //void printSymTable();
 
 

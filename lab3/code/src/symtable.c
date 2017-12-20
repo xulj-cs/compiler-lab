@@ -53,7 +53,18 @@ bool searchSymTable(const char *name,int kind, void **info,int flag){
 
 	return false;
 }
-
+int num_of_args(char *func){
+	ParaList_Ret para_ret = NULL;
+	searchSymTable(func,Function,(void **)&para_ret,1);
+	if(para_ret == NULL)
+		return -1;
+	int cnt = 0;
+	while(para_ret->tail){
+		cnt ++;
+		para_ret = para_ret->tail;
+	}
+	return cnt;
+}
 int searchSymTable_f(const char *name,ParaList_Ret paraList_ret,int lineno){
 	//ret = 0 :neither dec nor def
 	//ret = 1 :redefined funcion
