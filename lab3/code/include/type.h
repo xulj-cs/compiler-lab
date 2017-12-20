@@ -31,5 +31,6 @@ bool isFloat(Type);
 bool isStruct(Type);
 Type isField(FieldList,const char *);
 Type isArray(Type);
+int sizeofType(Type);
 #endif
 

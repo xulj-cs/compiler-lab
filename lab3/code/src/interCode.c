@@ -136,6 +136,8 @@ void print_IC(InterCode* ic){
 					   break;	
 		case ARG :	printf("ARG %s\n",ic->name);
 					break;
+		case DEC :	printf("DEC %s %d",ic->dec.place,ic->dec.size);
+					break;
 		default : printf("TBD");
 	}
 	

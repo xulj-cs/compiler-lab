@@ -16,14 +16,14 @@ static int label_no = 0;
 char *new_temp(){
 	// __t[x]
 	char *str = (char *)malloc(sizeof(char)*7);
-	sprintf(str,"__t%d",temp_no);
+	sprintf(str,"t%d",temp_no);
 	temp_no++;
 	return str;
 }
 char *new_label(){
 	// __l[x]
 	char *str = (char *)malloc(sizeof(char)*7);
-	sprintf(str,"__l%d",label_no);
+	sprintf(str,"l%d",label_no);
 	label_no++;
 	return str;
 }
@@ -166,6 +166,15 @@ InterCodes *ic_gen_func_call(char *place,char *function){
 	code->func.func_name = function;
 	RET_IC;
 }
+InterCodes *ic_gen_dec(char *place,int size){
+	InterCode *code = (InterCode*)malloc(sizeof(InterCode));
+	code->kind = DEC;
+	code->dec.place = place;
+	code->dec.size = size;
+	RET_IC;
+	
+
+}
 static InterCodes *translate_Exp(Node *p,char *place);
 
 static InterCodes *translate_Cond(Node *p,char *label_true,char *label_false){
@@ -295,6 +304,9 @@ static InterCodes *translate_Exp(Node *p,char *place){
 				}
 
 			}
+			else if(strcmp(p->child[1]->symbol,"Exp")==0){
+				return translate_Exp(p->child[1],place);
+			}
 			else if(strcmp(p->child[0]->symbol,"ID")==0){
 				char *function = p->child[0]->lexeme;
 				if(strcmp(function,"read")==0){
@@ -303,6 +315,9 @@ static InterCodes *translate_Exp(Node *p,char *place){
 				else{
 					return ic_gen_func_call(place,function);
 				}
+			}
+			else {
+				//TODO
 			}
 		}
 		case 4:
@@ -325,6 +340,12 @@ static InterCodes *translate_Exp(Node *p,char *place){
 					InterCodes *code3 = ic_gen_func_call(place,function);
 					return	ICs_concat(3,code1,code2,code3);
 				}
+			}
+			else if(strcmp(p->child[0]->symbol,"Exp")==0){
+				//Exp [ Exp ]
+				char *t1 = new_temp();
+				InterCodes *code1 = translate_Exp(p->child[2],t1);
+				// TODO
 			}
 		}
 	}
@@ -405,9 +426,59 @@ static InterCodes *translate_StmtList(Node *p){
 	InterCodes *code2 = translate_StmtList(p->child[1]);
 	return ICs_concat(2,code1,code2);
 }
+
+static InterCodes *translate_VarDec(Node *p){
+	while(strcmp(p->child[0]->symbol,"ID")!=0){
+		p = p->child[0];
+	}
+	char *v = p->child[0]->lexeme;
+	Type type = NULL;
+	searchSymTable(v,Variable,(void **)&type,1);
+	assert(type);
+	if(type->kind != BASIC){
+		return ic_gen_dec(v,sizeofType(type));
+	}	
+	return NULL;
+}
+static InterCodes *translate_Dec(Node *p){
+	if(p->num_of_child==1){
+		return translate_VarDec(p->child[0]);
+	}
+	else{
+		InterCodes *code1 = translate_VarDec(p->child[0]);
+		char *variable = code1->code->dec.place;
+		char *t1 = new_temp();
+		InterCodes *code2 = translate_Exp(p->child[2],t1);
+		InterCodes *code3 = ic_gen_assign(variable,t1);
+		return ICs_concat(3,code1,code2,code3);
+	}
+}
+static InterCodes *translate_DecList(Node *p){
+	if(p->num_of_child==1){
+		return translate_Dec(p->child[0]);
+	}
+	else {
+		InterCodes *code1 = translate_Dec(p->child[0]);
+		InterCodes *code2 = translate_DecList(p->child[2]);
+		return ICs_concat(2,code1,code2);
+	}
+
+}
+static InterCodes *translate_Def(Node *p){
+	return translate_DecList(p->child[1]);
+}
+static InterCodes *translate_DefList(Node *p){
+	if(!p)
+		return NULL;
+	InterCodes *code1 = translate_Def(p->child[0]);
+	InterCodes *code2 = translate_DefList(p->child[1]);
+	return ICs_concat(2,code1,code2);
+}
 static InterCodes *translate_CompSt(Node *p){
 	// CompSt -> { DefList StmtList}
-	return translate_StmtList(p->child[2]);
+	InterCodes *code1 = translate_DefList(p->child[1]);
+	InterCodes *code2 = translate_StmtList(p->child[2]);
+	return ICs_concat(2,code1,code2);
 }
 void IR_Gen(Node *p){
 	// ExtDef -> Specifier FunDec CompSt

@@ -70,3 +70,21 @@ Type isArray(Type a){
 	return NULL;
 }
 
+int sizeofType(Type a){
+	switch(a->kind){
+		case BASIC : return 4;
+		case ARRAY :return a->array.size * sizeofType(a->array.elem);
+		case STRUCTURE : 
+		{
+			int size = 0;
+			FieldList p = a->structure;
+			while(p){
+				size += sizeofType(p->type);
+				p = p->tail ;
+			}
+			return size;
+		}
+		default : return -1;
+	}
+}
+

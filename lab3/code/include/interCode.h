@@ -3,7 +3,7 @@
 
 typedef struct Operand_* Operand;
 struct Operand_{
-	enum {VARIABLE , CONSTANT , ADDRESS , } kind;
+	enum {VARIABLE , CONSTANT , ADDRESS  } kind;
 	union {
 		//int var_no;
 		//int value;
@@ -13,13 +13,14 @@ struct Operand_{
 
 typedef struct InterCode {
 
-	enum {ASSIGN , ADD , SUB , MUL , DIV ,FUNC_DEC, PARAM, ARG , RET, IF, GOTO , LABEL ,FUNC_CALL, READ ,WRITE} kind;
+	enum {ASSIGN , ADD , SUB , MUL , DIV ,FUNC_DEC, PARAM, ARG , RET, IF, GOTO , LABEL ,FUNC_CALL, READ ,WRITE , DEC} kind;
 	union{
 		struct {Operand left,right;} assign;
 		struct {Operand op;}unop;
 		struct {Operand result,op1,op2;}binop;
 		struct {Operand left,right;char *op;}cond;
 		struct {char *place,*func_name;}func;
+		struct {char *place;int size;}dec;
 		const char *name; //func_name var_name
 	};
 }InterCode;
