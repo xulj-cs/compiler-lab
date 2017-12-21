@@ -1,6 +1,8 @@
-#include <type.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
+#include "symtable.h"
+#include "type.h"
 bool fieldEq(FieldList a,FieldList b){
 	if(!a&&!b)
 		return true;
@@ -87,4 +89,25 @@ int sizeofType(Type a){
 		default : return -1;
 	}
 }
+Type typeofNode(Node *p){
+    if(strcmp(p->child[0]->symbol,"ID")==0){
+        char *v = p->child[0]->lexeme;
+        Type type = NULL;
+        searchSymTable(v,Variable,(void**)&type,1);
+        assert(type);
+        return type;
+    }
+    else if(strcmp(p->child[1]->symbol,"DOT")==0){
+        char *id = p->child[2]->lexeme;
+        FieldList field  = typeofNode(p->child[0])->structure;
+        while(strcmp(field->name,id)!=0){
+            field = field->tail;
+        }
+        return field->type;
+    }
+    else /*if(p->num_of_child==4)*/{
+        return typeofNode(p->child[0])->array.elem;
+    }
+}
+
 

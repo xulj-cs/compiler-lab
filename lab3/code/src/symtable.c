@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "symtable.h"
 #include "semanticAnalysis.h"
+
+#define SIZE_OF_TABLE 0x7fff
 symNode* table[SIZE_OF_TABLE];
 
 unsigned int hash_pjw(const char *name){

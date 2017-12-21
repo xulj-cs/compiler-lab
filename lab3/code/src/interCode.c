@@ -3,8 +3,37 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
+#include <string.h>
 #include "interCode.h"
 
+#define SIZE_OF_TABLE (0x7fff)
+Operand opTable[SIZE_OF_TABLE];
+
+void init_opTable(){
+	memset(opTable,0,sizeof(Operand)*SIZE_OF_TABLE);
+}
+Operand new_operand(const char *info,int kind){
+	Operand op = (Operand)malloc(sizeof(struct Operand_));
+	//op->kind = isdigit(info[0])?CONSTANT:VARIABLE;
+	op->kind = kind;
+	op->info = info;
+	int i=0;
+	while(opTable[i]){
+		i++;
+	}
+	opTable[i] = op;
+	return op;
+}
+Operand search_operand(const char *info){
+	for(int i=0;i<SIZE_OF_TABLE;i++){
+		if(opTable[i]==NULL)
+			break;
+		if(strcmp(opTable[i]->info,info)==0)
+			return opTable[i];
+	}
+	assert(0);
+	return NULL;
+}
 
 //void init_IC(){
 //	ICs = NULL;
@@ -72,12 +101,15 @@ InterCodes *ICs_concat(int num,...){
 	va_end(codesList);
 	return head;
 }
-Operand new_operand(char *info){
-	Operand op = (Operand)malloc(sizeof(struct Operand_));
-	op->kind = isdigit(info[0])?CONSTANT:VARIABLE;
-	op->info = info;
-	return op;
 
+InterCodes *ICs_pop_back(InterCodes *head){
+	assert(head);
+	if(head->next == head ){
+		return NULL;
+	}
+	head->prev->prev->next = head;
+	head->prev = head->prev->prev;
+	return head;
 }
 void print_operand(Operand op){
 	if(op->kind==VARIABLE)
@@ -91,6 +123,25 @@ void print_IC(InterCode* ic){
 		case FUNC_DEC:printf("FUNCTION %s :\n",ic->name);break;
 		case PARAM:	printf("PARAM %s\n",ic->name);break;			 
 		case ASSIGN:
+					print_operand(ic->assign.left);
+					printf(" := ");
+					print_operand(ic->assign.right);
+					printf("\n");
+					break;
+		case ASSIGN_ADDR:
+					print_operand(ic->assign.left);
+					printf(" := &");
+					print_operand(ic->assign.right);
+					printf("\n");
+					break;
+		case ASSIGN_STAR:
+					print_operand(ic->assign.left);
+					printf(" := *");
+					print_operand(ic->assign.right);
+					printf("\n");
+					break;
+		case STAR_ASSIGN:
+					printf("*");
 					print_operand(ic->assign.left);
 					printf(" := ");
 					print_operand(ic->assign.right);
@@ -128,15 +179,15 @@ void print_IC(InterCode* ic){
 					break;
 		case LABEL: printf("LABEL %s :\n",ic->name);
 					break;
-		case READ:	printf("READ %s\n",ic->name);
+		case READ:	printf("READ %s\n",ic->op->info);
 					break;
-		case WRITE:	printf("WRITE %s\n",ic->name);
+		case WRITE:	printf("WRITE %s\n",ic->op->info);
 					break;
-		case FUNC_CALL: printf("%s := CALL %s\n",ic->func.place,ic->func.func_name);
+		case FUNC_CALL: printf("%s := CALL %s\n",ic->func.place->info,ic->func.func_name);
 					   break;	
 		case ARG :	printf("ARG %s\n",ic->name);
 					break;
-		case DEC :	printf("DEC %s %d",ic->dec.place,ic->dec.size);
+		case DEC :	printf("DEC %s %d\n",ic->dec.op->info,ic->dec.size);
 					break;
 		default : printf("TBD");
 	}

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include "type.h"
 #include "node.h"
-#define SIZE_OF_TABLE 0x7fff
 
 //extern FieldList table[SIZE_OF_TABLE];
 

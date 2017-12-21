@@ -5,23 +5,24 @@ typedef struct Operand_* Operand;
 struct Operand_{
 	enum {VARIABLE , CONSTANT , ADDRESS  } kind;
 	union {
-		//int var_no;
-		//int value;
+		
 		char *info;
+		
 	};
 };
 
 typedef struct InterCode {
 
-	enum {ASSIGN , ADD , SUB , MUL , DIV ,FUNC_DEC, PARAM, ARG , RET, IF, GOTO , LABEL ,FUNC_CALL, READ ,WRITE , DEC} kind;
+	enum {ASSIGN , ASSIGN_ADDR,ASSIGN_STAR,STAR_ASSIGN,ADD , SUB , MUL , DIV ,FUNC_DEC, PARAM, ARG , RET, IF, GOTO , LABEL ,FUNC_CALL, READ ,WRITE , DEC} kind;
 	union{
 		struct {Operand left,right;} assign;
 		struct {Operand op;}unop;
 		struct {Operand result,op1,op2;}binop;
 		struct {Operand left,right;char *op;}cond;
-		struct {char *place,*func_name;}func;
-		struct {char *place;int size;}dec;
+		struct {Operand place;char *func_name;}func;
+		struct {Operand op;int size;}dec;
 		const char *name; //func_name var_name
+		Operand op;
 	};
 }InterCode;
 
@@ -29,26 +30,13 @@ typedef struct InterCodes {
 	InterCode *code;
 	struct InterCodes *prev,*next;
 }InterCodes;
-Operand new_operand(char *);
+
+Operand new_operand(const char *,int);
 void print_IC(InterCode*);
 InterCodes *IC_2_ICs(InterCode *);
 InterCodes* ICs_concat(int,...);
-
-#define CODE1 code1
-#define CODE2 CODE1,code2
-#define CODE3 CODE2,code3
-#define CODE4 CODE2,code4
-#define CODE5 CODE2,code5
-#define CODE6 CODE2,code6
-
-
-#define ICs_concat2 ICs_concat(2,code1,code2)
-#define ICs_concat3 ICs_concat(3,code1,code2,code3)
-#define ICs_concat4 ICs_concat(4,code1,code2,code3,code4)
-#define ICs_concat5 ICs_concat(5,code1,code2,code3,code4,code5)
-#define ICs_concat6 ICs_concat(6,code1,code2,code3,code4,code5,code6)
-#define ICs_concat7 ICs_concat(7,code1,code2,code3,code4,code5,code6,code7)
-
+InterCodes *ICs_pop_back(InterCodes*);
+Operand search_operand(const char *);
 #endif
 
 
