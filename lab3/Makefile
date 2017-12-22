@@ -53,7 +53,7 @@ TESTFILE := test.c
 test: all
 	$(target) $(TESTFILE)
 test-all: all
-	for testfile in $(shell find ./pretest/*.txt); \
+	for testfile in $(shell find ./testcase/*.txt); \
 	do \
 		echo $$testfile; \
 		$(target) $$testfile; \

@@ -19,6 +19,5 @@ extern Node* root;
 
 Node *newLeaf(const char* symbol);
 Node *newNode(const char* symbol,int num_of_child,...);
-void printAST();
-
+void traverseTree(void (*f)(Node *));
 #endif

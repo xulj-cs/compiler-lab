@@ -6,7 +6,7 @@ struct Operand_{
 	enum {VARIABLE , CONSTANT , ADDRESS  } kind;
 	union {
 		
-		char *info;
+		const char *info;
 		
 	};
 };
@@ -18,8 +18,8 @@ typedef struct InterCode {
 		struct {Operand left,right;} assign;
 		struct {Operand op;}unop;
 		struct {Operand result,op1,op2;}binop;
-		struct {Operand left,right;char *op;}cond;
-		struct {Operand place;char *func_name;}func;
+		struct {Operand left,right;const char *op;}cond;
+		struct {Operand place;const char *func_name;}func;
 		struct {Operand op;int size;}dec;
 		const char *name; //func_name var_name
 		Operand op;

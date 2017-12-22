@@ -31,45 +31,12 @@ Operand search_operand(const char *info){
 		if(strcmp(opTable[i]->info,info)==0)
 			return opTable[i];
 	}
+
+	printf("35%s\n",info);
 	assert(0);
 	return NULL;
 }
 
-//void init_IC(){
-//	ICs = NULL;
-//}
-
-/*InterCodes* ICs_push(InterCodes *head,InterCode *code){
-	if(head == NULL){
-		head  = (InterCodes*)malloc(sizeof(InterCodes));
-		head->code = code;
-		head->prev = head->next = head;	
-	}
-	else {
-
-		InterCodes* p = (InterCodes*)malloc(sizeof(InterCodes));
-		p->code = code;
-		head->prev->next = p;
-		p->next = head;
-		p->prev = head->prev;
-		head->prev = p;
-
-	}
-	return head;
-}
-*/
-//only use IC_concat(1) :which means IC->ICs
-/*InterCodes *IC_concat(int num_of_code,...){
-	InterCodes *head = NULL;
-	va_list codeList;
-	va_start(codeList,num_of_code);
-	for(int i=0;i<num_of_code;i++){
-		head = ICs_push(head,va_arg(codeList,InterCode*));
-	}	
-	va_end(codeList);
-	return head;
-}
-*/
 InterCodes* IC_2_ICs(InterCode *code){
 	InterCodes *head  = (InterCodes*)malloc(sizeof(InterCodes));
 	head->code = code;
@@ -112,7 +79,7 @@ InterCodes *ICs_pop_back(InterCodes *head){
 	return head;
 }
 void print_operand(Operand op){
-	if(op->kind==VARIABLE)
+	if(op->kind==VARIABLE||op->kind==ADDRESS)
 		printf("%s",op->info);
 	else if(op->kind==CONSTANT)
 		printf("#%s",op->info);
@@ -121,7 +88,7 @@ void print_IC(InterCode* ic){
 	assert(ic);
 	switch(ic->kind){
 		case FUNC_DEC:printf("FUNCTION %s :\n",ic->name);break;
-		case PARAM:	printf("PARAM %s\n",ic->name);break;			 
+		case PARAM:	printf("PARAM %s\n",ic->op->info);break;			 
 		case ASSIGN:
 					print_operand(ic->assign.left);
 					printf(" := ");
@@ -185,7 +152,7 @@ void print_IC(InterCode* ic){
 					break;
 		case FUNC_CALL: printf("%s := CALL %s\n",ic->func.place->info,ic->func.func_name);
 					   break;	
-		case ARG :	printf("ARG %s\n",ic->name);
+		case ARG :	printf("ARG %s\n",ic->op->info);
 					break;
 		case DEC :	printf("DEC %s %d\n",ic->dec.op->info,ic->dec.size);
 					break;

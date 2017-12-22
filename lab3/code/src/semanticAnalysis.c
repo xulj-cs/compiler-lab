@@ -5,7 +5,7 @@
 #include "symtable.h"
 #include "semanticAnalysis.h"
 
-int SERROR = 0;
+extern int SERROR ;
 void semanticError(int kind,int lineno){
 	SERROR ++;
 	printf("Error type %d at Line %d: ",kind,lineno);
@@ -516,6 +516,12 @@ static void ExtDef(Node *p){
 	}
 }
 
-void semanticAnalysis(Node *p){
+static void semanticAnalysis(Node *p){
 	ExtDef(p);
+}
+
+void semanticCheck(){
+	initSymTable();
+	traverseTree(semanticAnalysis);
+	checkSymTable();
 }

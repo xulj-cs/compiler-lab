@@ -6,8 +6,6 @@
 #include "node.h"
 #include "symtable.h"
 #include "semanticAnalysis.h"
-#include "interCode.h"
-#include "ir_gen.h"
 
 extern int yylineno;
 extern char *yytext;
@@ -47,8 +45,8 @@ Node *newNode(const char* symbol,int num_of_child,...){
 	p->lineno = p->child[0]->lineno;
 	return p;
 }
-/*	for lab1 ouput.....
-static void printSubtree(Node *p,int depth){
+/*	for lab1 ouput..... */
+/* static */void printSubtree(Node *p,int depth){
 	if (p == NULL)
 		return ;	//for the non-terminals that product epsilon
 	int t = depth;
@@ -83,39 +81,23 @@ static void printSubtree(Node *p,int depth){
 			
 	}
 }
-*/
-static void traverseSubtree(Node *p){
+
+static void traverseSubtree(Node *p,void (*func)(Node *)){
 	if (p==NULL)	
 		return ;
 	if (strcmp(p->symbol,"ExtDef")==0/*||strcmp(p->symbol,"Def")==0*/){
-		semanticAnalysis(p);
+		func(p);
 	}
 	else if (p->num_of_child){
 		for(int i=0;i<p->num_of_child;i++)
-			traverseSubtree(p->child[i]);
+			traverseSubtree(p->child[i],func);
 	}
 }
-static void traverseSubtree2(Node *p){
-	if(p==NULL)
-		return;
-	if(strcmp(p->symbol,"ExtDef")==0){
-		IR_Gen(p);
-	}
-	else if (p->num_of_child){
-		for(int i=0;i<p->num_of_child;i++)
-			traverseSubtree2(p->child[i]);
-	}
+
+void traverseTree(void (*func)(Node *)){
+	traverseSubtree(root,func);
 }
+
 void printAST(){
 //	printSubtree(root,0);
-
-	initSymTable();
-	traverseSubtree(root);
-	checkSymTable();	
-//	printSymTable();
-
-	if(!SERROR){
-		traverseSubtree2(root);
-		print_ICROOT();
-	}
 }
