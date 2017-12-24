@@ -32,8 +32,9 @@ Operand search_operand(const char *info){
 			return opTable[i];
 	}
 
-	assert(0);
-	return NULL;
+//	assert(0);
+	return new_operand(info,VARIABLE);
+//	return NULL;
 }
 
 InterCodes* IC_2_ICs(InterCode *code){
