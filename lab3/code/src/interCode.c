@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <ctype.h>
 #include <string.h>
 #include "interCode.h"
 
@@ -16,7 +15,6 @@ void init_opTable(){
 }
 Operand new_operand(const char *info,int kind){
 	Operand op = (Operand)malloc(sizeof(struct Operand_));
-	//op->kind = isdigit(info[0])?CONSTANT:VARIABLE;
 	op->kind = kind;
 	op->info = info;
 	int i=0;

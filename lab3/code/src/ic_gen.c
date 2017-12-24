@@ -1,11 +1,18 @@
 #include <assert.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
 #include "interCode.h"
 #include "type.h"
 
 #define RET_IC return IC_2_ICs(code)
+
+int isDigit(char c){
+	if('0'<=c&&c<='9')
+		return 1;
+	if(c=='+'||c=='-')
+		return 1;
+	return 0;
+}
 
 InterCodes *ic_gen_func_dec(const char *name){
 	InterCode *code = (InterCode*)malloc(sizeof(InterCode));
@@ -68,7 +75,7 @@ InterCodes *ic_gen_assign(const char *left,const char *right){
 		return NULL;
 	InterCode *code = (InterCode*)malloc(sizeof(InterCode));
 	code->kind = ASSIGN;
-	if(isdigit(right[0])){
+	if(isDigit(right[0])){
 		code->assign.left = new_operand(left,VARIABLE);
 		code->assign.right = new_operand(right,CONSTANT);
 	}
@@ -97,11 +104,11 @@ InterCodes *ic_gen_ari(const char *place,const char *t1,const char *t2,const con
 	}
 	else
 		assert(0);
-	if(isdigit(t1[0]))
+	if(isDigit(t1[0]))
 		code->binop.op1 = new_operand(t1,CONSTANT);
 	else
 		code->binop.op1 = search_operand(t1);
-	if(isdigit(t2[0]))
+	if(isDigit(t2[0]))
 		code->binop.op2 = new_operand(t2,CONSTANT);
 	else
 		code->binop.op2 = search_operand(t2);
