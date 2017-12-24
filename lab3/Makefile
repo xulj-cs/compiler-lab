@@ -12,7 +12,7 @@ OBJ := obj/
 CFLAGS := -c -std=c99 -I $(INC)  -Wall #-Werror 
 LDFLAGS := -lfl -ly
 
-target :=  ./parser
+target :=  ./mycc
 
 all : $(target)
 
@@ -50,17 +50,14 @@ $(OBJ)%.o:$(SRC)%.c
 .PHONY: clean test test-all clean-temp
 
 TESTFILE := test.c
+TESTOUT := test.ir
+
 test: all
-	$(target) $(TESTFILE)
-test-all: all
-	for testfile in $(shell find ./testcase/*.txt); \
-	do \
-		echo $$testfile; \
-		$(target) $$testfile; \
-	done
+	$(target) $(TESTFILE) $(TESTOUT)
 
 clean-temp:
 	-rm -rf $(OBJ)
+	-rm -f *.ir
 
 clean:clean-temp
 	-rm -f $(target)

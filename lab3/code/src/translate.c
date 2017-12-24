@@ -13,14 +13,14 @@ static int temp_no = 0;
 static int label_no = 0;
 static char *new_temp(){
 	// __t[x]
-	char *str = (char *)malloc(sizeof(char)*7);
+	char *str = (char *)malloc(sizeof(char)*10);
 	sprintf(str,"t%d",temp_no);
 	temp_no++;
 	return str;
 }
 static char *new_label(){
 	// __l[x]
-	char *str = (char *)malloc(sizeof(char)*7);
+	char *str = (char *)malloc(sizeof(char)*10);
 	sprintf(str,"l%d",label_no);
 	label_no++;
 	return str;
@@ -221,7 +221,12 @@ static InterCodes *translate_Exp(Node *p,char *place){
 					return ic_gen_read(place);
 				}
 				else{
-					return ic_gen_func_call(place,function);
+					if(place)
+						return ic_gen_func_call(place,function);
+					else{
+						char *t = new_temp();
+						return ic_gen_func_call(t,function);
+					}
 				}
 			}
 			else if(strcmp(p->child[1]->symbol,"DOT")==0){
@@ -240,6 +245,8 @@ static InterCodes *translate_Exp(Node *p,char *place){
 		case 4:
 		{
 			if(strcmp(p->child[0]->symbol,"ID")==0){
+				//if(!place)
+				//	return NULL;
 				char *function = p->child[0]->lexeme;
 				int num = num_of_args(function);
 				assert(num>=1);
@@ -270,8 +277,14 @@ static InterCodes *translate_Exp(Node *p,char *place){
 					for (int i=num-1;i>=0;i--){
 						code2 = ICs_concat(2,code2,ic_gen_arg(arg_list[i]));	
 					}
-					InterCodes *code3 = ic_gen_func_call(place,function);
-				
+					InterCodes *code3 = NULL;
+					if(place)
+						code3 = ic_gen_func_call(place,function);
+					else {
+						char *t = new_temp();
+						code3 = ic_gen_func_call(t,function);
+
+					}
 					return	ICs_concat(3,code1,code2,code3);
 				}
 			}

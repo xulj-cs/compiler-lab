@@ -9,6 +9,8 @@
 #define SIZE_OF_TABLE (0x7fff)
 Operand opTable[SIZE_OF_TABLE];
 
+FILE *fout;
+
 void init_opTable(){
 	memset(opTable,0,sizeof(Operand)*SIZE_OF_TABLE);
 }
@@ -32,7 +34,6 @@ Operand search_operand(const char *info){
 			return opTable[i];
 	}
 
-	printf("35%s\n",info);
 	assert(0);
 	return NULL;
 }
@@ -80,83 +81,83 @@ InterCodes *ICs_pop_back(InterCodes *head){
 }
 void print_operand(Operand op){
 	if(op->kind==VARIABLE||op->kind==ADDRESS)
-		printf("%s",op->info);
+		fprintf(fout,"%s",op->info);
 	else if(op->kind==CONSTANT)
-		printf("#%s",op->info);
+		fprintf(fout,"#%s",op->info);
 }
 void print_IC(InterCode* ic){
 	assert(ic);
 	switch(ic->kind){
-		case FUNC_DEC:printf("FUNCTION %s :\n",ic->name);break;
-		case PARAM:	printf("PARAM %s\n",ic->op->info);break;			 
+		case FUNC_DEC:fprintf(fout,"FUNCTION %s :\n",ic->name);break;
+		case PARAM:	fprintf(fout,"PARAM %s\n",ic->op->info);break;			 
 		case ASSIGN:
 					print_operand(ic->assign.left);
-					printf(" := ");
+					fprintf(fout," := ");
 					print_operand(ic->assign.right);
-					printf("\n");
+					fprintf(fout,"\n");
 					break;
 		case ASSIGN_ADDR:
 					print_operand(ic->assign.left);
-					printf(" := &");
+					fprintf(fout," := &");
 					print_operand(ic->assign.right);
-					printf("\n");
+					fprintf(fout,"\n");
 					break;
 		case ASSIGN_STAR:
 					print_operand(ic->assign.left);
-					printf(" := *");
+					fprintf(fout," := *");
 					print_operand(ic->assign.right);
-					printf("\n");
+					fprintf(fout,"\n");
 					break;
 		case STAR_ASSIGN:
-					printf("*");
+					fprintf(fout,"*");
 					print_operand(ic->assign.left);
-					printf(" := ");
+					fprintf(fout," := ");
 					print_operand(ic->assign.right);
-					printf("\n");
+					fprintf(fout,"\n");
 					break;
 		case ADD:case SUB:case MUL:case DIV:{
 				    print_operand(ic->binop.result);
-					printf(" := ");
+					fprintf(fout," := ");
 					print_operand(ic->binop.op1);
 					switch(ic->kind){
 						case ADD:
-							printf(" + ");break;
+							fprintf(fout," + ");break;
 						case SUB:
-							printf(" - ");break;
+							fprintf(fout," - ");break;
 						case MUL:
-							printf(" * ");break;
+							fprintf(fout," * ");break;
 						case DIV:
-							printf(" / ");break;
+							fprintf(fout," / ");break;
 						default:assert(0);
 					}
 					print_operand(ic->binop.op2);
-					printf("\n");
+					fprintf(fout,"\n");
 					break;
 		}
-		case RET:	printf("RETURN ");
-					printf("%s\n",ic->name);
+		case RET:	fprintf(fout,"RETURN ");
+					fprintf(fout,"%s\n",ic->name);
 					break;
-		case IF :	printf("IF ");
+		case IF :	fprintf(fout,"IF ");
 					print_operand(ic->cond.left);
-					printf(" %s ",ic->cond.op);
+					fprintf(fout," %s ",ic->cond.op);
 					print_operand(ic->cond.right);
-					printf(" ");
+					fprintf(fout," ");
 					break;
-		case GOTO:  printf("GOTO %s\n",ic->name);
+		case GOTO:  fprintf(fout,"GOTO %s\n",ic->name);
 					break;
-		case LABEL: printf("LABEL %s :\n",ic->name);
+		case LABEL: fprintf(fout,"LABEL %s :\n",ic->name);
 					break;
-		case READ:	printf("READ %s\n",ic->op->info);
+		case READ:	fprintf(fout,"READ %s\n",ic->op->info);
 					break;
-		case WRITE:	printf("WRITE %s\n",ic->op->info);
+		case WRITE:	fprintf(fout,"WRITE %s\n",ic->op->info);
 					break;
-		case FUNC_CALL: printf("%s := CALL %s\n",ic->func.place->info,ic->func.func_name);
+		case FUNC_CALL: fprintf(fout,"%s := CALL %s\n",ic->func.place->info,ic->func.func_name);
 					   break;	
-		case ARG :	printf("ARG %s\n",ic->op->info);
+		case ARG :	fprintf(fout,"ARG %s\n",ic->op->info);
 					break;
-		case DEC :	printf("DEC %s %d\n",ic->dec.op->info,ic->dec.size);
+		case DEC :	fprintf(fout,"DEC %s %d\n",ic->dec.op->info,ic->dec.size);
 					break;
-		default : printf("TBD");
+		default : fprintf(fout,"TBD");
 	}
 	
 }
