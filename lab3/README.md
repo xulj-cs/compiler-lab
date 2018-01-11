@@ -14,18 +14,24 @@
 
 #### 数据结构
 - 中间代码
+
 ![](https://i.imgur.com/f9ZQKlt.png)
 - 采用线性结构（双向循环链表）链接中间代码
+
 ![](https://i.imgur.com/21PJmEe.png)
 - 操作数的结构
+
 ![](https://i.imgur.com/2bEawC0.png)
 
 #### 函数接口
 - 用于生成中间代码
+
 ![](https://i.imgur.com/HFgck3f.png)
 - 用于中间代码的连接和调整
+
 ![](https://i.imgur.com/ywt60P7.png)
 - 用于打印中间代码
+
 ![](https://i.imgur.com/WpTetOB.png)
 
 #### 翻译过程
@@ -39,6 +45,7 @@
 - 利用可变参数来一次连接任意多条中间代码.
 ![](https://i.imgur.com/VhddSG2.png)
 - 对中间代码采用指针操作(链表结点的域采用中间代码的指针，而不是中间代码本身），减小数据传递的开销.
+
 ![](https://i.imgur.com/21PJmEe.png)
 
 ### 五、编译和运行
