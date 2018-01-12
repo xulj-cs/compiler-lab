@@ -50,10 +50,11 @@ $(OBJ)%.o:$(SRC)%.c
 .PHONY: clean test test-all clean-temp
 
 TESTFILE := test.c
-TESTOUT := test.ir
+TESTOUT := test.s
 
 test: all
 	$(target) $(TESTFILE) $(TESTOUT)
+	spim -file $(TESTOUT)
 
 clean-temp:
 	-rm -rf $(OBJ)

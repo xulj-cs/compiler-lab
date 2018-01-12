@@ -8,6 +8,7 @@ const char* regs[NUM_OF_REGS];
 int dirty[NUM_OF_REGS];
 //t0--t9 s0--s7
 
+extern FILE* fout;
 VarDesc *vars = NULL;
 int st_top = 0;
 void print_var(){
@@ -73,7 +74,7 @@ void spill(int r){
 		offset = st_top;
 		new_var_addr(regs[r],st_top);	
 	}
-	printf("sw %s,%d($fp)\n",reg_name(r),offset);
+	fprintf(fout,"sw %s,%d($fp)\n",reg_name(r),offset);
 	//print_var();
 	
 }
@@ -123,7 +124,7 @@ const char* ensure(const char *v,int flag){
 		}
 		else{
 			int off = get_var_addr(v);
-			printf("lw %s, %d($fp)\n",reg_name(r),off);
+			fprintf(fout,"lw %s, %d($fp)\n",reg_name(r),off);
 		}
 	}
 	return reg_name(r);

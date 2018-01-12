@@ -38,11 +38,11 @@ int main(int argc, char** argv) {
 	if(SERROR)
 		return -1;
 	InterCodeGen();
-	print_ICROOT();
-	print_ASMs();
+	//print_ICROOT();
+	
 	/*****  LAB4 *****/
-
-	//print_ASM();
+	print_ASMs();
+	
 	fclose(fout);
 	return 0;
 }

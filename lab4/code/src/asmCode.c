@@ -5,34 +5,32 @@
 #include <stdbool.h>
 #include "interCode.h"
 
+int sp_upd = 0;
+int old_sp = 0;
+
 extern InterCodes *ICROOT;
 extern int st_top;
 const char *ensure(const char *,int);
-void storeDirty();
-/*static void print_reg(const char *s){
-	if(s[0]=='$')
-		printf("%s",s);
-	else{
-		//查找x对应的寄存器--寄存器分配
-		printf("%s",ensure(s));
-	}
-}
-*/
+void storeDirtyVar();
+void initRegs();
+int get_var_addr(const char *);
+void new_var_addr(const char *,int);
+extern FILE* fout;
 static void print_reg_i(const char *op,const char *x,const char *n){
-	printf("%s %s, %s\n",op,ensure(x,1),n);
+	fprintf(fout,"%s %s, %s\n",op,ensure(x,1),n);
 }
 static void print_reg_2(const char *op,const char *x,const char *y){
-	printf("%s %s, %s\n",op, ensure(x,1),ensure(y,0));
+	fprintf(fout,"%s %s, %s\n",op, ensure(x,1),ensure(y,0));
 }
 static void print_reg_2_i(const char *op,const char *x,const char *y,const char *n){
-	printf("%s %s, %s, %s\n",op,ensure(x,1),ensure(y,0),n);
+	fprintf(fout,"%s %s, %s, %s\n",op,ensure(x,1),ensure(y,0),n);
 }
 static void print_reg_3(const char *op,const char *x,const char *y,const char *z){
-	printf("%s %s, %s, %s\n",op,ensure(x,1),ensure(y,0),ensure(z,0));
+	fprintf(fout,"%s %s, %s, %s\n",op,ensure(x,1),ensure(y,0),ensure(z,0));
 }
 
 static void print_func(char *name){
-	printf("\
+	fprintf(fout,"\
 jal %s\n\
 ",name);
 }
@@ -40,10 +38,47 @@ jal %s\n\
 void print_ASM(InterCode* ic){
 	assert(ic);
 	switch(ic->kind){
-		case LABEL:		storeDirtyVar();
-						initRegs();
-						printf("%s:\n",ic->name);
-						break;
+		case FUNC_DEC:
+			initRegs();
+			
+			fprintf(fout,"\n%s:\n",ic->name);
+			//保存返回地址（如果此函数中没有调用函数，则可以不需要保存）
+			fprintf(fout,"addi $sp, $sp, -4\n");
+			fprintf(fout,"sw $ra, 0($sp)\n");
+
+			//保存旧的ebp
+			fprintf(fout,"addi $sp, $sp, -4\n");
+			fprintf(fout,"sw $fp, 0($sp)\n");
+
+			//ebp = esp
+			fprintf(fout,"move $fp, $sp\n");	
+			st_top = 0;
+			
+			//为s0-s7保留空间
+			fprintf(fout,"addi $sp, $sp ,-32\n");
+			st_top -= 32;
+			break;
+		case LABEL:		
+			storeDirtyVar();
+			initRegs();
+			fprintf(fout,"%s:\n",ic->name);
+			break;
+		case RET:
+			//storeDirtyVar();再也用不到了
+			
+			fprintf(fout,"move $sp, $fp\n");
+
+			fprintf(fout,"lw $fp, 0($sp)\n");
+			fprintf(fout,"addi $sp, $sp, 4\n");
+
+			fprintf(fout,"lw $ra, 0($sp)\n");
+			fprintf(fout,"addi $sp, $sp ,4\n");
+		
+			fprintf(fout,"move $v0, %s\n",ensure(ic->name,0));
+			fprintf(fout,"jr $ra\n");
+
+			st_top = old_sp;
+			break;
 		case ASSIGN:
 		{
 			Operand op1 = ic->assign.left;
@@ -94,56 +129,77 @@ void print_ASM(InterCode* ic){
 				print_reg_3("mul",op3->info,op1->info,v);	
 			}
 			else{
-				printf("div %s, %s\n",ensure(op1->info,0),ensure(v,0));
-				printf("mflo %s\n",ensure(op3->info,1));
+				fprintf(fout,"div %s, %s\n",ensure(op1->info,0),ensure(v,0));
+				fprintf(fout,"mflo %s\n",ensure(op3->info,1));
 			}
 			break;
 	   	}
 		case ASSIGN_STAR:	
-							printf("lw %s, 0(%s)",ensure(ic->assign.left->info,1),ensure(ic->assign.right->info,0));
+							fprintf(fout,"lw %s, 0(%s)\n",ensure(ic->assign.left->info,1),ensure(ic->assign.right->info,0));
 							break;
 		case STAR_ASSIGN:	
-							printf("sw %s, 0(%s)",ensure(ic->assign.left->info,0),ensure(ic->assign.right->info,0));
+							fprintf(fout,"sw %s, 0(%s)\n",ensure(ic->assign.right->info,0),ensure(ic->assign.left->info,0));
 							break;
 		case GOTO:	storeDirtyVar();
-					printf("j %s\n",ic->name);break;
-		case FUNC_CALL:	printf("jar %s\n",ic->func.func_name);
-						printf("move %s, $v0\n",ensure(ic->func.place->info,1));
-						break;
+					fprintf(fout,"j %s\n",ic->name);
+					break;
+		case ARG:case PARAM:	
+		/*			if(sp_upd==0){
+						storeDirtyVar();
+						fprintf(fout,"addi $sp, $sp, %d\n",st_top);
+						sp_upd = 1;
+					}
+					//st_top = 0;
+					fprintf(fout,"addi $sp, $sp, -4\n");
+					fprintf(fout,"sw %s, 0($sp)\n",ensure(ic->op->info,0));
+		*/
+					assert(0);
+					break;
+		case FUNC_CALL:	
+					initRegs();
+					st_top = 0;
+					storeDirtyVar();
+					fprintf(fout,"jal %s\n",ic->func.func_name);
+					fprintf(fout,"move %s, $v0\n",ensure(ic->func.place->info,1));
 					break;
 		case IF:
 		{
 			storeDirtyVar();
 			const char *op = ic->cond.op;
 			if(strcmp(op,"==")==0)
-				printf("beq");
+				fprintf(fout,"beq");
 			else if(strcmp(op,"!=")==0)
-				printf("bne");
+				fprintf(fout,"bne");
 			else if(strcmp(op,">") ==0)
-				printf("bgt");
+				fprintf(fout,"bgt");
 			else if(strcmp(op,"<") ==0)
-				printf("blt");
+				fprintf(fout,"blt");
 			else if(strcmp(op,">=")==0)
-				printf("bge");
+				fprintf(fout,"bge");
 			else if(strcmp(op,"<=")==0)
-				printf("ble");
-			printf(" ");
-			printf("%s, %s, %s\n",ensure(ic->cond.left->info,0),ensure(ic->cond.right->info,0),ic->cond.label);
+				fprintf(fout,"ble");
+			fprintf(fout," ");
+			fprintf(fout,"%s, %s, %s\n",ensure(ic->cond.left->info,0),ensure(ic->cond.right->info,0),ic->cond.label);
 			break;
 		}
 		case READ:	print_func("read");	
-					printf("move %s, $v0\n",ensure(ic->op->info,1));
+					fprintf(fout,"move %s, $v0\n",ensure(ic->op->info,1));
 					break;
-		case WRITE:	printf("move $a0, %s\n",ensure(ic->op->info,0));
+		case WRITE:	fprintf(fout,"move $a0, %s\n",ensure(ic->op->info,0));
 					print_func("write");
 					break;
-			
-		default:printf("TBD\n");
+		case DEC:	st_top -= ic->dec.size;
+					new_var_addr(ic->dec.op->info,st_top);	
+					break;
+		case ASSIGN_ADDR:
+					fprintf(fout,"addi %s, $fp, %d\n",ensure(ic->assign.left->info,1),get_var_addr(ic->assign.right->info));
+					break;
+		default:fprintf(fout,"TBD\n");
 	}
 }
 
 void print_init(){
-	printf("\
+	fprintf(fout,"\
 .data\n\
 _prompt: .asciiz \"Enter an integer:\"\n\
 _ret: .asciiz \"\\n\"\n\
@@ -165,60 +221,52 @@ la $a0, _ret\n\
 syscall\n\
 move $v0, $0\n\
 jr $ra\n\
-\n\
 ");
 
 }
 void print_ASMs(){
-	InterCodes* p = ICROOT;
 	print_init();
+	InterCodes* p = ICROOT;
 	while(true){
-
-		if(p->code->kind == FUNC_DEC){
-			initStack();
-			initRegs();
-			
-			printf("%s:\n",p->code->name);
-			//保存返回地址（如果此函数中没有调用函数，则可以不需要保存）
-			printf("addi $sp, $sp, -4\n");
-			printf("sw $ra, 0($sp)\n");
-
-			//保存旧的ebp
-			printf("addi $sp, $sp, -4\n");
-			printf("sw $fp, 0($sp)\n");
-
-			//ebp = esp
-			printf("move $fp, $sp\n");	
-			st_top = 0;
-			
-			//为s0-s7保留空间
-			printf("addi $sp, $sp ,-32\n");
-			st_top -= 32;
-			
-			//为函数中的中间变量保留空间，并建立变量名与栈位置的映射关系Vars st_top
-			
-			p = p->next;
-			while(p->code->kind != RET){
-				print_ASM(p->code);
-				p = p->next;	
+		if(p->code->kind == ARG){
+			storeDirtyVar();
+			fprintf(fout,"addi $sp, $sp, %d\n",st_top+32);
+			InterCodes *t = p;
+			int cnt = 0;
+			while(t->code->kind == ARG){
+				t = t->next;
+				cnt++;
 			}
+			//p = t;	
 
-			//storeDirtyVar();再也用不到了
-			
-			printf("move $sp, $fp\n");
-
-			printf("lw $fp, 0($sp)\n");
-			printf("addi $sp, $sp, 4\n");
-
-			printf("lw $ra, 0($sp)\n");
-			printf("addi $sp, $sp ,4\n");
-		
-			printf("move $v0, %s\n",ensure(p->code->name,0));
-			printf("jr $ra\n");
-			
-			p = p->next;	
+			for(;cnt>=5;cnt--){
+				fprintf(fout,"addi $sp, $sp, -4\n");
+				fprintf(fout,"lw %s,0($sp)\n",ensure(p->code->op->info,0));
+				p = p->next;
+			}
+			for(;cnt>=1;cnt--){
+				fprintf(fout,"move $a%d, %s\n",cnt-1,ensure(p->code->op->info,0));
+				p = p->next;
+			}
+			assert(p==t);
 		}
+		
+		else if(p->code->kind == PARAM){
+			int cnt = 0;
+			while(p->code->kind == PARAM){
+				if(cnt <=3){
+					fprintf(fout,"move %s,$a%d\n",ensure(p->code->op->info,1),cnt);
+				}
+				else{
+					fprintf(fout,"lw %s, %d($sp)\n",ensure(p->code->op->info,1),(cnt-4+2)*4);
+				}
 
+				cnt ++;
+				p = p->next;
+			}
+		}
+		print_ASM(p->code);	
+		p = p->next;	
 		if(p==ICROOT)
 			break;
 	}

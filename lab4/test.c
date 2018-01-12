@@ -1,15 +1,13 @@
-int main()
+ int main()
  {
- int a = 0, b = 1, i = 0, n;
- n = read();
- while (i < n)
- {
- int c = a + b;
- write(b);
- a = b;
- b = c;
- i = i + 1;
- }
+ int a, b, c;
+ int final = 0;
+ a = 5;
+ b = a * a * (a + 2);
+ //write(b);
+ c = b / a + 1;
+ //write(c);
+ final = a + b - c * 3 + (b / a - 4);
+ write(final);
  return 0;
  }
-
