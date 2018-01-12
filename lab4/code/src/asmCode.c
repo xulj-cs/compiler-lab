@@ -11,6 +11,7 @@ int old_sp = 0;
 extern InterCodes *ICROOT;
 extern int st_top;
 const char *ensure(const char *,int);
+const char *ensure_v(const char *,const char *);
 void storeDirtyVar();
 void initRegs();
 int get_var_addr(const char *);
@@ -26,7 +27,7 @@ static void print_reg_2_i(const char *op,const char *x,const char *y,const char 
 	fprintf(fout,"%s %s, %s, %s\n",op,ensure(x,1),ensure(y,0),n);
 }
 static void print_reg_3(const char *op,const char *x,const char *y,const char *z){
-	fprintf(fout,"%s %s, %s, %s\n",op,ensure(x,1),ensure(y,0),ensure(z,0));
+	fprintf(fout,"%s %s, %s, %s\n",op,ensure(x,1),ensure_v(y,z),ensure(z,0));
 }
 
 static void print_func(char *name){
@@ -77,7 +78,6 @@ void print_ASM(InterCode* ic){
 			fprintf(fout,"move $v0, %s\n",ensure(ic->name,0));
 			fprintf(fout,"jr $ra\n");
 
-			st_top = old_sp;
 			break;
 		case ASSIGN:
 		{
@@ -97,7 +97,6 @@ void print_ASM(InterCode* ic){
 			Operand op2 = ic->binop.op2;
 			Operand op3 = ic->binop.result;
 			if(op2->kind == CONSTANT){
-				assert(0);
 				if(ic->kind == SUB){
 					char *t = (char *)malloc(sizeof(char)*(2+strlen(op2->info)));
 					strcpy(t+1,op2->info);
@@ -129,7 +128,7 @@ void print_ASM(InterCode* ic){
 				print_reg_3("mul",op3->info,op1->info,v);	
 			}
 			else{
-				fprintf(fout,"div %s, %s\n",ensure(op1->info,0),ensure(v,0));
+				fprintf(fout,"div %s, %s\n",ensure_v(op1->info,v),ensure(v,0));
 				fprintf(fout,"mflo %s\n",ensure(op3->info,1));
 			}
 			break;
@@ -138,26 +137,16 @@ void print_ASM(InterCode* ic){
 							fprintf(fout,"lw %s, 0(%s)\n",ensure(ic->assign.left->info,1),ensure(ic->assign.right->info,0));
 							break;
 		case STAR_ASSIGN:	
-							fprintf(fout,"sw %s, 0(%s)\n",ensure(ic->assign.right->info,0),ensure(ic->assign.left->info,0));
+							fprintf(fout,"sw %s, 0(%s)\n",ensure_v(ic->assign.right->info,ic->assign.left->info),ensure(ic->assign.left->info,0));
 							break;
 		case GOTO:	storeDirtyVar();
 					fprintf(fout,"j %s\n",ic->name);
 					break;
 		case ARG:case PARAM:	
-		/*			if(sp_upd==0){
-						storeDirtyVar();
-						fprintf(fout,"addi $sp, $sp, %d\n",st_top);
-						sp_upd = 1;
-					}
-					//st_top = 0;
-					fprintf(fout,"addi $sp, $sp, -4\n");
-					fprintf(fout,"sw %s, 0($sp)\n",ensure(ic->op->info,0));
-		*/
 					assert(0);
 					break;
 		case FUNC_CALL:	
 					initRegs();
-					st_top = 0;
 					storeDirtyVar();
 					fprintf(fout,"jal %s\n",ic->func.func_name);
 					fprintf(fout,"move %s, $v0\n",ensure(ic->func.place->info,1));
@@ -166,6 +155,8 @@ void print_ASM(InterCode* ic){
 		{
 			storeDirtyVar();
 			const char *op = ic->cond.op;
+			char *s1 = ensure(ic->cond.right->info,0);
+			char *s2 = ensure_v(ic->cond.left->info,ic->cond.right->info);
 			if(strcmp(op,"==")==0)
 				fprintf(fout,"beq");
 			else if(strcmp(op,"!=")==0)
@@ -179,7 +170,7 @@ void print_ASM(InterCode* ic){
 			else if(strcmp(op,"<=")==0)
 				fprintf(fout,"ble");
 			fprintf(fout," ");
-			fprintf(fout,"%s, %s, %s\n",ensure(ic->cond.left->info,0),ensure(ic->cond.right->info,0),ic->cond.label);
+			fprintf(fout,"%s, %s, %s\n",s2,s1,ic->cond.label);
 			break;
 		}
 		case READ:	print_func("read");	
