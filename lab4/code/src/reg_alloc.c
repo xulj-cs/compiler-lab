@@ -5,15 +5,23 @@
 
 #define NUM_OF_REGS (18)
 const char* regs[NUM_OF_REGS];
-int isDirty[NUM_OF_REGS];
+int dirty[NUM_OF_REGS];
 //t0--t9 s0--s7
 
 VarDesc *vars = NULL;
 int st_top = 0;
+void print_var(){
+	VarDesc *p = vars;
+	while(p){
+		printf("%s:%d\n",p->name,p->offset);
+		p = p->next;
+	}
+}
+
 
 void new_var_addr(const char *name,int off){
 	if(vars==NULL){
-		vars = malloc(sizeof(VarDesc*));
+		vars = malloc(sizeof(VarDesc));
 		vars->name = name;
 		vars->offset = off;
 		vars->next = NULL;
@@ -22,29 +30,31 @@ void new_var_addr(const char *name,int off){
 		VarDesc *p = vars;
 		while(p->next)
 			p = p->next;
-		p->next = malloc(sizeof(VarDesc*));
-		p->name = name ;
-		p->offset = off;
-		p->next = NULL;
+		p->next = malloc(sizeof(VarDesc));
+		p->next->name = name ;
+		p->next->offset = off;
+		p->next->next = NULL;
 	}
 }
 int get_var_addr(const char *v){
 	VarDesc *p = vars;
 	while(p){
 		if(strcmp(p->name,v)==0)
-			return vars->offset;
+			return p->offset;
 		p = p->next;
 	}
-	
+	//printf("//%s is not in stack\n",v);	
 	return -1;
 }
 
 void initRegs(){
+//	printf("************INIT REGS*********\n");
 	memset(regs,0,sizeof(char*)*NUM_OF_REGS);
-	memset(isDirty,0,sizeof(int)*NUM_OF_REGS);
+	memset(dirty,0,sizeof(int)*NUM_OF_REGS);
 }
 void initStack(){
 	st_top = 0;
+//	printf("************INIT ST*********\n");
 }
 
 const char *reg_name(int n){
@@ -58,11 +68,13 @@ const char *reg_name(int n){
 void spill(int r){
 	int offset = get_var_addr(regs[r]);
 	if(offset == -1){
-		printf("addi $sp, $sp, -4\n");
+//		printf("addi $sp, $sp, -4\n");
 		st_top = st_top - 4;
+		offset = st_top;
 		new_var_addr(regs[r],st_top);	
 	}
-	printf("sw %s,%d($fp)",reg_name(r),offset);
+	printf("sw %s,%d($fp)\n",reg_name(r),offset);
+	//print_var();
 	
 }
 int FarthestUse(){
@@ -80,27 +92,56 @@ int allocate(const char *v){
 	regs[r] = v;
 	return r;
 }
-const char* ensure(const char *v){
+void print_regs(){
+	for(int i=0;i<NUM_OF_REGS;i++){
+		if(regs[i]){
+			printf("%s:%s\n",reg_name(i),regs[i]);
+		}
+	}
+}
+const char* ensure(const char *v,int flag){
+//	print_regs();
+	int r = -1;
 	for(int i=0;i<NUM_OF_REGS;i++){
 		if(regs[i]==NULL)
 			continue;
 		if(strcmp(v,regs[i])==0){
-			return reg_name(i);
+			r = i;
+			if(flag)
+				dirty[r] = 1;
+			break;
 		}
 	}
-	return reg_name(allocate(v));
+	//r != -1 v的值保存在第r个寄存器中
+
+
+	if(r == -1){
+		r = allocate(v);
+		if(flag){
+		//	printf("***%s:%s is dirty****\n",v,reg_name(r));
+			dirty[r] = 1;
+		}
+		else{
+			int off = get_var_addr(v);
+			printf("lw %s, %d($fp)\n",reg_name(r),off);
+		}
+	}
+	return reg_name(r);
 }
 
 
 
 void storeDirtyVar(){
+//	print_var();
 	for(int i=0;i<NUM_OF_REGS;i++){
-		if(isDirty[i]){
+		if(dirty[i]){
 			spill(i);
+			dirty[i]=0;
 		}
 	
 	}
-
+//	print_var();
+//	printf("************STORE REGS*********\n");
 }
 
 
