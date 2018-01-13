@@ -7,7 +7,12 @@ typedef struct VarDesc{
 	struct VarDesc *next;
 }VarDesc;
 
-
-
+extern int st_top;
+const char *ensure(const char*,int);
+const char *ensure_v(const char *,const char*);
+void storeDirtyVar();
+void initRegs();
+int get_var_addr(const char *);
+void new_var_addr(const char *,int);
 
 #endif

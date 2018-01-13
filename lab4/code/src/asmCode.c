@@ -4,19 +4,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include "interCode.h"
-
-int sp_upd = 0;
-int old_sp = 0;
+#include "reg_alloc.h"
 
 extern InterCodes *ICROOT;
-extern int st_top;
-const char *ensure(const char *,int);
-const char *ensure_v(const char *,const char *);
-void storeDirtyVar();
-void initRegs();
-int get_var_addr(const char *);
-void new_var_addr(const char *,int);
 extern FILE* fout;
+
 static void print_reg_i(const char *op,const char *x,const char *n){
 	fprintf(fout,"%s %s, %s\n",op,ensure(x,1),n);
 }
@@ -36,36 +28,15 @@ jal %s\n\
 ",name);
 }
 
-void print_ASM(InterCode* ic){
+static void print_ASM(InterCode* ic){
 	assert(ic);
 	switch(ic->kind){
-		case FUNC_DEC:
-			initRegs();
-			
-			fprintf(fout,"\n%s:\n",ic->name);
-			//保存返回地址（如果此函数中没有调用函数，则可以不需要保存）
-			fprintf(fout,"addi $sp, $sp, -4\n");
-			fprintf(fout,"sw $ra, 0($sp)\n");
-
-			//保存旧的ebp
-			fprintf(fout,"addi $sp, $sp, -4\n");
-			fprintf(fout,"sw $fp, 0($sp)\n");
-
-			//ebp = esp
-			fprintf(fout,"move $fp, $sp\n");	
-			st_top = 0;
-			
-			//为s0-s7保留空间
-			fprintf(fout,"addi $sp, $sp ,-32\n");
-			st_top -= 32;
-			break;
 		case LABEL:		
 			storeDirtyVar();
 			initRegs();
 			fprintf(fout,"%s:\n",ic->name);
 			break;
 		case RET:
-			//storeDirtyVar();再也用不到了
 			
 			fprintf(fout,"move $sp, $fp\n");
 
@@ -134,29 +105,21 @@ void print_ASM(InterCode* ic){
 			break;
 	   	}
 		case ASSIGN_STAR:	
-							fprintf(fout,"lw %s, 0(%s)\n",ensure(ic->assign.left->info,1),ensure(ic->assign.right->info,0));
-							break;
+			fprintf(fout,"lw %s, 0(%s)\n",ensure(ic->assign.left->info,1),ensure(ic->assign.right->info,0));
+			break;
 		case STAR_ASSIGN:	
-							fprintf(fout,"sw %s, 0(%s)\n",ensure_v(ic->assign.right->info,ic->assign.left->info),ensure(ic->assign.left->info,0));
-							break;
-		case GOTO:	storeDirtyVar();
-					fprintf(fout,"j %s\n",ic->name);
-					break;
-		case ARG:case PARAM:	
-					assert(0);
-					break;
-		case FUNC_CALL:	
-					initRegs();
-					storeDirtyVar();
-					fprintf(fout,"jal %s\n",ic->func.func_name);
-					fprintf(fout,"move %s, $v0\n",ensure(ic->func.place->info,1));
-					break;
+			fprintf(fout,"sw %s, 0(%s)\n",ensure_v(ic->assign.right->info,ic->assign.left->info),ensure(ic->assign.left->info,0));
+			break;
+		case GOTO:
+			storeDirtyVar();
+			fprintf(fout,"j %s\n",ic->name);
+			break;
 		case IF:
 		{
 			storeDirtyVar();
 			const char *op = ic->cond.op;
-			char *s1 = ensure(ic->cond.right->info,0);
-			char *s2 = ensure_v(ic->cond.left->info,ic->cond.right->info);
+			const char *s1 = ensure(ic->cond.right->info,0);
+			const char *s2 = ensure_v(ic->cond.left->info,ic->cond.right->info);
 			if(strcmp(op,"==")==0)
 				fprintf(fout,"beq");
 			else if(strcmp(op,"!=")==0)
@@ -173,23 +136,26 @@ void print_ASM(InterCode* ic){
 			fprintf(fout,"%s, %s, %s\n",s2,s1,ic->cond.label);
 			break;
 		}
-		case READ:	print_func("read");	
-					fprintf(fout,"move %s, $v0\n",ensure(ic->op->info,1));
-					break;
-		case WRITE:	fprintf(fout,"move $a0, %s\n",ensure(ic->op->info,0));
-					print_func("write");
-					break;
-		case DEC:	st_top -= ic->dec.size;
-					new_var_addr(ic->dec.op->info,st_top);	
-					break;
+		case READ:
+			print_func("read");	
+			fprintf(fout,"move %s, $v0\n",ensure(ic->op->info,1));
+			break;
+		case WRITE:
+			fprintf(fout,"move $a0, %s\n",ensure(ic->op->info,0));
+			print_func("write");
+			break;
+		case DEC:
+			st_top -= ic->dec.size;
+			new_var_addr(ic->dec.op->info,st_top);	
+			break;
 		case ASSIGN_ADDR:
-					fprintf(fout,"addi %s, $fp, %d\n",ensure(ic->assign.left->info,1),get_var_addr(ic->assign.right->info));
-					break;
-		default:fprintf(fout,"TBD\n");
+			fprintf(fout,"addi %s, $fp, %d\n",ensure(ic->assign.left->info,1),get_var_addr(ic->assign.right->info));
+			break;
+		default:fprintf(fout,"\n");
 	}
 }
 
-void print_init(){
+static void print_data_read_write(){
 	fprintf(fout,"\
 .data\n\
 _prompt: .asciiz \"Enter an integer:\"\n\
@@ -213,48 +179,105 @@ syscall\n\
 move $v0, $0\n\
 jr $ra\n\
 ");
+}
 
+static InterCodes *translate_arg_call(InterCodes *p){
+	storeDirtyVar();
+	
+	//ARG
+	InterCodes *t = p;
+	int cnt = 0;
+	while(t->code->kind == ARG){
+		t = t->next;
+		cnt++;
+	}
+	int temp = cnt;
+	for(;cnt>=5;cnt--){
+		fprintf(fout,"addi $sp, $sp, -4\n");
+		fprintf(fout,"lw %s,0($sp)\n",ensure(p->code->op->info,0));
+		p = p->next;
+	}
+	for(;cnt>=1;cnt--){
+		fprintf(fout,"move $a%d, %s\n",cnt-1,ensure(p->code->op->info,0));
+		p = p->next;
+	}
+	assert(p==t);
+	
+	//CALL
+	initRegs();
+	fprintf(fout,"jal %s\n",p->code->func.func_name);
+	for(;temp>=5;temp--)
+		fprintf(fout,"addi $sp, $sp, 4\n");			
+	fprintf(fout,"move %s, $v0\n",ensure(p->code->func.place->info,1));
+	p = p->next;
+
+	return p;
+}
+
+static int num_of_var(InterCodes *p){
+	int cnt = 0;
+	InterCodes *t = p->next;
+	while(t->code->kind != FUNC_DEC){
+		switch(t->code->kind){
+			case DEC:cnt += t->code->dec.size/4 ; break;
+			case ARG:case RET:case LABEL:case IF:case GOTO:case STAR_ASSIGN: case WRITE:  break;
+			default:cnt ++;
+		}
+		t = t->next;
+	}
+	return cnt;	
+}
+static InterCodes* translate_func_param(InterCodes *p){
+
+	//FUNC_DEC
+	int cnt = num_of_var(p);
+
+	InterCode *ic = p->code;
+	initRegs();
+	
+	fprintf(fout,"\n%s:\n",ic->name);
+	
+	fprintf(fout,"addi $sp, $sp, -4\n");
+	fprintf(fout,"sw $ra, 0($sp)\n");
+
+	fprintf(fout,"addi $sp, $sp, -4\n");
+	fprintf(fout,"sw $fp, 0($sp)\n");
+
+	fprintf(fout,"move $fp, $sp\n");	
+	st_top = 0;
+
+	fprintf(fout,"addi $sp, $sp, %d\n",-cnt*4);
+	
+	p = p->next;
+
+	//PARAM
+	if(p->code->kind == PARAM){
+		int cnt = 0;
+		while(p->code->kind == PARAM){
+			if(cnt <=3){
+				fprintf(fout,"move %s,$a%d\n",ensure(p->code->op->info,1),cnt);
+		}
+			else{
+				fprintf(fout,"lw %s, %d($sp)\n",ensure(p->code->op->info,1),(cnt-4+2)*4);
+			}
+
+			cnt ++;
+			p = p->next;
+		}
+	}
+
+	return p;
 }
 void print_ASMs(){
-	print_init();
+	print_data_read_write();
 	InterCodes* p = ICROOT;
 	while(true){
-		if(p->code->kind == ARG){
-			storeDirtyVar();
-			fprintf(fout,"addi $sp, $sp, %d\n",st_top+32);
-			InterCodes *t = p;
-			int cnt = 0;
-			while(t->code->kind == ARG){
-				t = t->next;
-				cnt++;
-			}
-			//p = t;	
-
-			for(;cnt>=5;cnt--){
-				fprintf(fout,"addi $sp, $sp, -4\n");
-				fprintf(fout,"lw %s,0($sp)\n",ensure(p->code->op->info,0));
-				p = p->next;
-			}
-			for(;cnt>=1;cnt--){
-				fprintf(fout,"move $a%d, %s\n",cnt-1,ensure(p->code->op->info,0));
-				p = p->next;
-			}
-			assert(p==t);
+		if(p->code->kind == ARG || p->code->kind == FUNC_CALL){
+			p = translate_arg_call(p);
 		}
 		
-		else if(p->code->kind == PARAM){
-			int cnt = 0;
-			while(p->code->kind == PARAM){
-				if(cnt <=3){
-					fprintf(fout,"move %s,$a%d\n",ensure(p->code->op->info,1),cnt);
-				}
-				else{
-					fprintf(fout,"lw %s, %d($sp)\n",ensure(p->code->op->info,1),(cnt-4+2)*4);
-				}
-
-				cnt ++;
-				p = p->next;
-			}
+		else if(p->code->kind == FUNC_DEC){
+			p = translate_func_param(p);
 		}
 		print_ASM(p->code);	
 		p = p->next;	
