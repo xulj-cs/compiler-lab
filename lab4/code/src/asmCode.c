@@ -28,7 +28,7 @@ jal %s\n\
 ",name);
 }
 
-static void print_ASM(InterCode* ic){
+static void translate_ir(InterCode* ic){
 	assert(ic);
 	switch(ic->kind){
 		case LABEL:		
@@ -279,7 +279,7 @@ void print_ASMs(){
 		else if(p->code->kind == FUNC_DEC){
 			p = translate_func_param(p);
 		}
-		print_ASM(p->code);	
+		translate_ir(p->code);	
 		p = p->next;	
 		if(p==ICROOT)
 			break;
